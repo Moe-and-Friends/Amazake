@@ -15,7 +15,6 @@ class Roulette(Cog):
     def __init__(self, bot: Bot):
         self.bot = bot
         self.logger = logging.getLogger("roulette")
-        self.matcher = re.compile(settings.get("timeout_pattern"))
 
         self.timeout_config = config_loader.load_config()
         self.logger.info("Successfully loaded remote configuration")
