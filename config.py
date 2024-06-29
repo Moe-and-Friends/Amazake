@@ -14,6 +14,7 @@ settings = Dynaconf(
         Validator("discord_bot_token", must_exist=True, is_type_of=str),
         Validator("remote_config_url", must_exist=True, is_type_of=str),
         Validator("remote_roulette_url", must_exist=True, is_type_of=str),
+        Validator("timeout_leaderboard_url", is_type_of=str),
     ]
 )
 

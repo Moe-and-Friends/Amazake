@@ -2,6 +2,8 @@ import logging
 import random
 import re
 
+import requests
+
 from . import action, config_loader, debounce
 from config import settings
 from datetime import timedelta
@@ -157,3 +159,22 @@ class Roulette(Cog):
             reply = random.choice(self.timeout_config.timeout_affected_messages_other)
             await message.reply(reply.format(timeout_user_name=target.display_name,
                                              timeout_duration_label=duration_label))
+
+        self._timeout_record_stats(duration, message, target)
+
+    def _timeout_record_stats(self, duration: timedelta, message: Message, target: Member):
+        leaderboard_url = settings.get("timeout_leaderboard_url")
+        if not leaderboard_url:
+            self.logger.debug("No timeout leaderboard URL detected, not sending stats")
+            return
+
+        requests.post(leaderboard_url, json={
+            "discord": {
+                "user_id": target.id,
+                "guild_id": message.guild.id
+            },
+            "timeout": {
+                "duration": int(duration / timedelta(minutes=1))
+            }
+        })
+        self.logger.debug(f"Sending stats update to {leaderboard_url}")
