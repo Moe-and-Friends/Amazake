@@ -160,9 +160,23 @@ class Roulette(Cog):
             await message.reply(reply.format(timeout_user_name=target.display_name,
                                              timeout_duration_label=duration_label))
 
-        self._timeout_record_stats(duration, message, target)
+        self._timeout_record_stats(duration, message)
 
-    def _timeout_record_stats(self, duration: timedelta, message: Message, target: Member):
+    def _timeout_record_stats(self, duration: timedelta, message: Message) -> None:
+        """
+        Records a timeout event for stats handling. Sends a request with the following JSON form:
+        {
+            "discord": {
+                "user_id": <author's id: int>, <-- This means moderators are attributed for rolls even on other users.
+                "guild_id": <guild_id: int>
+            },
+            "timeout": {
+                "duration": <duration of the timeout: int>
+            }
+        }
+        :param duration: A timedelta representing the total duration of the timeout
+        :param message: The original message that triggered the timeout
+        """
         leaderboard_url = settings.get("timeout_leaderboard_url")
         if not leaderboard_url:
             self.logger.debug("No timeout leaderboard URL detected, not sending stats")
@@ -170,7 +184,7 @@ class Roulette(Cog):
 
         requests.post(leaderboard_url, json={
             "discord": {
-                "user_id": target.id,
+                "user_id": message.author.id,
                 "guild_id": message.guild.id
             },
             "timeout": {
