@@ -1,7 +1,6 @@
 import logging
 import random
 import re
-
 import requests
 
 from . import action, config_loader, debounce
