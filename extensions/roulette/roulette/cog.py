@@ -132,10 +132,12 @@ class Roulette(Cog):
         if self._is_protected(target) or self._is_moderator(target) or self._is_admin(target):
             if is_self:
                 reply = random.choice(self.timeout_config.timeout_protected_messages_self)
-                await message.reply(reply.format(timeout_user_name=target.name, timeout_duration_label=duration_label))
+                await message.reply(reply.format(timeout_user_name=target.display_name,
+                                                 timeout_duration_label=duration_label))
             else:
                 reply = random.choice(self.timeout_config.timeout_protected_messages_other)
-                await message.reply(reply.format(timeout_user_name=target.name, timeout_duration_label=duration_label))
+                await message.reply(reply.format(timeout_user_name=target.display_name,
+                                                 timeout_duration_label=duration_label))
             return
 
         # Non-native mutes aren't supported yet.
@@ -149,7 +151,9 @@ class Roulette(Cog):
 
         if is_self:
             reply = random.choice(self.timeout_config.timeout_affected_messages_self)
-            await message.reply(reply.format(timeout_user_name=target.name, timeout_duration_label=duration_label))
+            await message.reply(reply.format(timeout_user_name=target.display_name,
+                                             timeout_duration_label=duration_label))
         else:
             reply = random.choice(self.timeout_config.timeout_affected_messages_other)
-            await message.reply(reply.format(timeout_user_name=target.name, timeout_duration_label=duration_label))
+            await message.reply(reply.format(timeout_user_name=target.display_name,
+                                             timeout_duration_label=duration_label))
