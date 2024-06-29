@@ -10,7 +10,7 @@ from discord.ext.commands import Bot
 intents = discord.Intents.default()
 intents.message_content = True
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger("roulette")
 handler = logging.StreamHandler(stream=sys.stderr)
 

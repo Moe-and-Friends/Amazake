@@ -166,8 +166,8 @@ class Roulette(Cog):
         Records a timeout event for stats handling. Sends a request with the following JSON form:
         {
             "discord": {
-                "user_id": <author's id: int>, <-- This means moderators are attributed for rolls even on other users.
-                "guild_id": <guild_id: int>
+                "user_id": <author's id: str>, <-- This means moderators are attributed for rolls even on other users.
+                "guild_id": <guild_id: str>
             },
             "timeout": {
                 "duration": <duration of the timeout: int>
@@ -181,10 +181,11 @@ class Roulette(Cog):
             self.logger.debug("No timeout leaderboard URL detected, not sending stats")
             return
 
+        # Note: The IDs must be passed as strings to avoid auto-rounding.
         requests.post(leaderboard_url, json={
             "discord": {
-                "user_id": message.author.id,
-                "guild_id": message.guild.id
+                "user_id": str(message.author.id),
+                "guild_id": str(message.guild.id)
             },
             "timeout": {
                 "duration": int(duration / timedelta(minutes=1))
