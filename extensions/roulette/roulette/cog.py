@@ -116,9 +116,11 @@ class Roulette(Cog):
         is_moderator = self._is_moderator(message.author)
         is_administrator = self._is_admin(message.author)
 
-        if (is_moderator or is_administrator) and len(message.mentions) > 0:
+        # Ignore mentions of the bot user itself.
+        mentions = set([mention for mention in message.mentions if mention.id != self.bot.user.id])
+        if (is_moderator or is_administrator) and len(mentions) > 0:
             self.logger.debug("User is a moderator or administrator, targeting mentioned users instead.")
-            return set(message.mentions)
+            return mentions
         return {message.author}
 
     async def _timeout(self,
