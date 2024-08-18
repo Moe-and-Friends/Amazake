@@ -1,32 +1,21 @@
 import logging
 import random
-import re
-import requests
 
-from . import action, config_loader, debounce
-from config import settings
+from . import action, debounce, stats
+from ..config import config
+
+from asyncio import sleep
 from datetime import timedelta
 from discord import Member, Message, User
-from discord.ext import tasks
 from discord.ext.commands import Bot, Cog, guild_only
 from typing import Set
 
 
-class Roulette(Cog):
+class Roll(Cog):
     def __init__(self, bot: Bot):
         self.bot = bot
-        self.logger = logging.getLogger("roulette")
-
-        self.timeout_config = config_loader.load_config()
-        self.logger.info("Successfully loaded remote configuration")
-
-        # This causes a double load, but it's better than the lack of a load
-        self.refresh_config.start()
-
-        self.logger.info("Loaded Roulette cog")
-
-    async def cog_unload(self):
-        self.refresh_config.cancel()
+        self.logger = logging.getLogger("roulette.roll")
+        self.logger.info("Loaded Roll cog")
 
     async def cog_command_error(self, ctx, error: Exception) -> None:
         self.logger.warning(str(error))
@@ -47,16 +36,15 @@ class Roulette(Cog):
         # All administrators are implicitly moderators and are protected
         is_moderator = self._is_moderator(message.author) or is_administrator
 
-        if str(message.channel.id) not in self.timeout_config.channels:
+        if str(message.channel.id) not in config.channels():
             if not (is_administrator or is_moderator):
                 self.logger.debug(f"Ignoring message (channel not observed): {message.id}")
                 return
 
         # Check message against all match patterns
         is_match = False
-        for pattern in self.timeout_config.match_patterns:
-            matcher = re.compile(pattern)
-            if matcher.search(message.content):
+        for pattern in config.roll_match_patterns():
+            if pattern.search(message.content):
                 is_match = True
                 break
         if not is_match:
@@ -76,10 +64,17 @@ class Roulette(Cog):
 
             # Determine the targets for this rollout command.
             targets = self._determine_targets(message)
-            self.logger.debug(f"Starting roulette for users: {', '.join([member.name for member in targets])}")
+            self.logger.debug(f"Starting roll for users: {', '.join([member.name for member in targets])}")
 
             for target in targets:
+                self.logger.info(f"Now processing roll for user: {target.name}")
                 effect = action.fetch()
+
+                if configured_delay := config.roll_timeout_response_delay_seconds():
+                    delay = random.randint(1, configured_delay)
+                    self.logger.debug(f"Artificially waiting {delay} seconds before continuing")
+                    await sleep(delay)
+
                 if isinstance(effect, action.Timeout):
                     self.logger.info(f"Rolled timeout of length {effect.duration_label} for {target.name}")
                     await self._timeout(timedelta(minutes=effect.duration), effect.duration_label, message, target)
@@ -87,23 +82,20 @@ class Roulette(Cog):
                     self.logger.critical("Received an unsupported action type.")
                     continue
 
-    @tasks.loop(hours=1)
-    async def refresh_config(self):
-        self.timeout_config = config_loader.load_config()
-        self.logger.info("Successfully loaded remote configuration")
-
     def _is_protected(self, member: Member) -> bool:
-        is_protected = not self.timeout_config.protected.isdisjoint(set([str(role.id) for role in member.roles]))
+        protected = set(config.protected())
+        is_protected = not protected.isdisjoint(set([str(role.id) for role in member.roles]))
         self.logger.debug(f"User {member.name}'s protected status: {is_protected}")
         return is_protected
 
     def _is_moderator(self, member: Member) -> bool:
-        is_moderator = not self.timeout_config.moderators.isdisjoint(set([str(role.id) for role in member.roles]))
+        moderators = set(config.moderator())
+        is_moderator = not moderators.isdisjoint(set([str(role.id) for role in member.roles]))
         self.logger.debug(f"User {member.name}'s mod status: {is_moderator}")
         return is_moderator
 
     def _is_admin(self, user: User | Member) -> bool:
-        is_admin = str(user.id) in self.timeout_config.administrators
+        is_admin = str(user.id) in config.administrator()
         self.logger.debug(f"User {user.name}'s admin status: {is_admin}")
         return is_admin
 
@@ -121,6 +113,8 @@ class Roulette(Cog):
         if (is_moderator or is_administrator) and len(mentions) > 0:
             self.logger.debug("User is a moderator or administrator, targeting mentioned users instead.")
             return mentions
+
+        self.logger.debug("Targeting the message author.")
         return {message.author}
 
     async def _timeout(self,
@@ -130,15 +124,18 @@ class Roulette(Cog):
                        target: Member):
 
         is_self = target == message.author
+        self.logger.debug(f"Message is targeting self: {is_self}")
 
         # If target is protected, respond with a safe message and return immediately.
         if self._is_protected(target) or self._is_moderator(target) or self._is_admin(target):
             if is_self:
-                reply = random.choice(self.timeout_config.timeout_protected_messages_self)
-                await message.reply(reply.format(timeout_user_name=target.display_name,
-                                                 timeout_duration_label=duration_label))
+                self.logger.info("Responding with protected message for self")
+                reply = random.choice(config.roll_timeout_protected_messages_self())
+                await message.reply(reply.format(user_name=target.display_name,
+                                                 duration_label=duration_label))
             else:
-                reply = random.choice(self.timeout_config.timeout_protected_messages_other)
+                self.logger.info("Responding with protected message for targeted user")
+                reply = random.choice(config.roll_timeout_protected_messages_other())
                 await message.reply(reply.format(timeout_user_name=target.display_name,
                                                  timeout_duration_label=duration_label))
             return
@@ -153,44 +150,14 @@ class Roulette(Cog):
         self.logger.info(f"Timed {target.name} out for {duration_label}")
 
         if is_self:
-            reply = random.choice(self.timeout_config.timeout_affected_messages_self)
-            await message.reply(reply.format(timeout_user_name=target.display_name,
-                                             timeout_duration_label=duration_label))
+            self.logger.info("Responding with affected message for self")
+            reply = random.choice(config.roll_timeout_affected_messages_self())
+            await message.reply(reply.format(user_name=target.display_name,
+                                             duration_label=duration_label))
         else:
-            reply = random.choice(self.timeout_config.timeout_affected_messages_other)
-            await message.reply(reply.format(timeout_user_name=target.display_name,
-                                             timeout_duration_label=duration_label))
+            self.logger.info("Responding with affected message for targeted user")
+            reply = random.choice(config.roll_timeout_affected_messages_other())
+            await message.reply(reply.format(user_name=target.display_name,
+                                             duration_label=duration_label))
 
-        self._timeout_record_stats(duration, message)
-
-    def _timeout_record_stats(self, duration: timedelta, message: Message) -> None:
-        """
-        Records a timeout event for stats handling. Sends a request with the following JSON form:
-        {
-            "discord": {
-                "user_id": <author's id: str>, <-- This means moderators are attributed for rolls even on other users.
-                "guild_id": <guild_id: str>
-            },
-            "timeout": {
-                "duration": <duration of the timeout: int>
-            }
-        }
-        :param duration: A timedelta representing the total duration of the timeout
-        :param message: The original message that triggered the timeout
-        """
-        leaderboard_url = settings.get("timeout_leaderboard_url")
-        if not leaderboard_url:
-            self.logger.debug("No timeout leaderboard URL detected, not sending stats")
-            return
-
-        # Note: The IDs must be passed as strings to avoid auto-rounding.
-        requests.post(leaderboard_url, json={
-            "discord": {
-                "user_id": str(message.author.id),
-                "guild_id": str(message.guild.id)
-            },
-            "timeout": {
-                "duration": int(duration / timedelta(minutes=1))
-            }
-        })
-        self.logger.debug(f"Sending stats update to {leaderboard_url}")
+        stats.timeout_record_stats(duration, message)

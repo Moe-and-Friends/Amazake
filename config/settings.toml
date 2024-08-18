@@ -1,0 +1,75 @@
+
+[default]
+
+# Logger output level.
+# Note: Consider providing this via environment variable instead.
+# Use: [DEBUG, INFO, WARNING, ERROR, CRITICAL]
+log_level = "INFO"
+
+# The token used to log into the Discord bot.
+# Note: Consider providing this via environment variable instead.
+bot_token = "<bot_token>"
+
+# Channels that should be observed.
+roulette_channels = ["<list_of_channel_ids"]
+
+# List of Discord Roles
+# These roles will be immune to being timed out.
+roulette_protected_roles = ["<list_of_role_ids>"]
+
+# List of Discord Roles
+# These roles will be able to roll for other roles.
+# Moderators are implicitly protected users.
+roulette_moderator_roles = ["<list_of_role_ids>"]
+
+# List of Discord User IDs
+# Reserved superuser role for future use.
+# Administrators are implicitly moderators.
+roulette_administrator_users = ["<list_of_role_ids>"]
+
+# List of Python regex patterns (as strings)
+# Messages that satisfy this pattern will trigger the roll
+roulette_roll_match_patterns = ["<list_of_regex_patterns>"]
+
+# A list of messages that could be used to reply to a user who timed themselves out.
+# Supported inline variables:
+# {user_name}: The display name of the user (will not be tagged)
+# {duration_label}: A display of the user's timeout duration
+roulette_roll_timeout_affected_messages_self = ["<list_of_messages>"]
+
+# A list of a messages that could be used to reply to a moderator or administrator who timed another user out.
+# Supported inline variables:
+# {user_name}: The display name of the user (will not be tagged)
+# {duration_label}: A display of the user's timeout duration
+roulette_roll_timeout_affected_messages_other = ["<list_of_messages>"]
+
+# A list of messages that could be used to reply to a user who attempted to time themselves out, but was protected.
+# Supported inline variables:
+# {user_name}: The display name of the user (will not be tagged)
+# {duration_label}: A display of the user's timeout duration
+roulette_roll_timeout_protected_messages_self = ["<list_of_messages>"]
+
+# A list of messages that could be used to reply to a moderator or administrator who attempted to timeout a protected user.
+# Supported inline variables:
+# {user_name}: The display name of the user (will not be tagged)
+# {duration_label}: A display of the user's timeout duration
+roulette_roll_timeout_protected_messages_other = ["<list_of_messages>"]
+
+# A list of URLs that will receive notifications whenever a user is timed-out.
+# TODO: Add the JSON body here.
+roulette_roll_timeout_leaderboard_webhook_urls = ["<list_of_urls>"]
+
+# An int representing an artifical "delay" that will be added after the roll.
+# This creates a "<bot_name> is typing..." effect for several seconds.
+# A value will be randomly selected between 1s and this value.
+# Disable by not setting (or set to 0)
+roulette_roll_timeout_response_delay_seconds = 3
+
+# List of timeout intervals
+# Bounds are inclusive [bound.lower, bound.upper]
+# Weight: Non-cumulative weight for each interval.
+# Supported suffixes: m, h, d, w
+# Repeat another [[<STAGING_ENV>.roulette_roll_intervals]] to add a new interval.
+[[default.roulette_roll_timeout_intervals]]
+bound = { "lower" = "1m", "upper" = "5m"}
+weight = 100
