@@ -20,6 +20,10 @@ _settings = Dynaconf(
         Validator("protected", is_type_of=list),
         Validator("moderator", is_type_of=list),
         Validator("administrator", is_type_of=list),
+        Validator("timeout_affected_messages_self", must_exist=True, is_type_of=list, len_min=1),
+        Validator("timeout_affected_messages_other", must_exist=True, is_type_of=list, len_min=1),
+        Validator("timeout_protected_messages_self", must_exist=True, is_type_of=list, len_min=1),
+        Validator("timeout_protected_messages_other", must_exist=True, is_type_of=list, len_min=1),
         Validator("timeout_leaderboard_webhook_urls", is_type_of=list),
     ]
 )
@@ -50,6 +54,22 @@ def moderator() -> Optional[List[str]]:
 
 def administrator() -> Optional[List[str]]:
     return _settings.get("administrator")
+
+
+def timeout_affected_messages_self() -> List[str]:
+    return _settings.get("timeout_affected_messages_self")
+
+
+def timeout_affected_messages_other() -> List[str]:
+    return _settings.get("timeout_affected_messages_other")
+
+
+def timeout_protected_messages_self() -> List[str]:
+    return _settings.get("timeout_protected_messages_self")
+
+
+def timeout_protected_messages_other() -> List[str]:
+    return _settings.get("timeout_protected_messages_other")
 
 
 def timeout_leaderboard_webhook_urls() -> Optional[List[str]]:

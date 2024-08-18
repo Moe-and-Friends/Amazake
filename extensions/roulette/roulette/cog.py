@@ -1,12 +1,11 @@
 import logging
 import random
-import re
 
-from . import action, config_loader, debounce, stats
+from . import action, debounce, stats
+from ..config import config
 
 from datetime import timedelta
 from discord import Member, Message, User
-from discord.ext import tasks
 from discord.ext.commands import Bot, Cog, guild_only
 from typing import Set
 
@@ -16,16 +15,9 @@ class Roulette(Cog):
         self.bot = bot
         self.logger = logging.getLogger("roulette")
 
-        self.timeout_config = config_loader.load_config()
         self.logger.info("Successfully loaded remote configuration")
 
-        # This causes a double load, but it's better than the lack of a load
-        self.refresh_config.start()
-
         self.logger.info("Loaded Roulette cog")
-
-    async def cog_unload(self):
-        self.refresh_config.cancel()
 
     async def cog_command_error(self, ctx, error: Exception) -> None:
         self.logger.warning(str(error))
@@ -46,16 +38,15 @@ class Roulette(Cog):
         # All administrators are implicitly moderators and are protected
         is_moderator = self._is_moderator(message.author) or is_administrator
 
-        if str(message.channel.id) not in self.timeout_config.channels:
+        if str(message.channel.id) not in config.channels():
             if not (is_administrator or is_moderator):
                 self.logger.debug(f"Ignoring message (channel not observed): {message.id}")
                 return
 
         # Check message against all match patterns
         is_match = False
-        for pattern in self.timeout_config.match_patterns:
-            matcher = re.compile(pattern)
-            if matcher.search(message.content):
+        for pattern in config.match_patterns():
+            if pattern.search(message.content):
                 is_match = True
                 break
         if not is_match:
@@ -86,23 +77,20 @@ class Roulette(Cog):
                     self.logger.critical("Received an unsupported action type.")
                     continue
 
-    @tasks.loop(hours=1)
-    async def refresh_config(self):
-        self.timeout_config = config_loader.load_config()
-        self.logger.info("Successfully loaded remote configuration")
-
     def _is_protected(self, member: Member) -> bool:
-        is_protected = not self.timeout_config.protected.isdisjoint(set([str(role.id) for role in member.roles]))
+        protected = set(config.protected())
+        is_protected = not protected.isdisjoint(set([str(role.id) for role in member.roles]))
         self.logger.debug(f"User {member.name}'s protected status: {is_protected}")
         return is_protected
 
     def _is_moderator(self, member: Member) -> bool:
-        is_moderator = not self.timeout_config.moderators.isdisjoint(set([str(role.id) for role in member.roles]))
+        moderators = set(config.moderator())
+        is_moderator = not moderators.isdisjoint(set([str(role.id) for role in member.roles]))
         self.logger.debug(f"User {member.name}'s mod status: {is_moderator}")
         return is_moderator
 
     def _is_admin(self, user: User | Member) -> bool:
-        is_admin = str(user.id) in self.timeout_config.administrators
+        is_admin = str(user.id) in config.administrator()
         self.logger.debug(f"User {user.name}'s admin status: {is_admin}")
         return is_admin
 
@@ -133,11 +121,11 @@ class Roulette(Cog):
         # If target is protected, respond with a safe message and return immediately.
         if self._is_protected(target) or self._is_moderator(target) or self._is_admin(target):
             if is_self:
-                reply = random.choice(self.timeout_config.timeout_protected_messages_self)
+                reply = random.choice(config.timeout_protected_messages_self())
                 await message.reply(reply.format(timeout_user_name=target.display_name,
                                                  timeout_duration_label=duration_label))
             else:
-                reply = random.choice(self.timeout_config.timeout_protected_messages_other)
+                reply = random.choice(config.timeout_protected_messages_other())
                 await message.reply(reply.format(timeout_user_name=target.display_name,
                                                  timeout_duration_label=duration_label))
             return
@@ -152,11 +140,11 @@ class Roulette(Cog):
         self.logger.info(f"Timed {target.name} out for {duration_label}")
 
         if is_self:
-            reply = random.choice(self.timeout_config.timeout_affected_messages_self)
+            reply = random.choice(config.timeout_affected_messages_self())
             await message.reply(reply.format(timeout_user_name=target.display_name,
                                              timeout_duration_label=duration_label))
         else:
-            reply = random.choice(self.timeout_config.timeout_affected_messages_other)
+            reply = random.choice(config.timeout_affected_messages_other())
             await message.reply(reply.format(timeout_user_name=target.display_name,
                                              timeout_duration_label=duration_label))
 
