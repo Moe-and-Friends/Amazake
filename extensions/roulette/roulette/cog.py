@@ -14,9 +14,6 @@ class Roulette(Cog):
     def __init__(self, bot: Bot):
         self.bot = bot
         self.logger = logging.getLogger("roulette")
-
-        self.logger.info("Successfully loaded remote configuration")
-
         self.logger.info("Loaded Roulette cog")
 
     async def cog_command_error(self, ctx, error: Exception) -> None:

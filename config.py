@@ -1,5 +1,5 @@
 from dynaconf import Dynaconf, Validator
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 _settings = Dynaconf(
     envvar_prefix="ROULETTE",
@@ -25,6 +25,7 @@ _settings = Dynaconf(
         Validator("timeout_protected_messages_self", must_exist=True, is_type_of=list, len_min=1),
         Validator("timeout_protected_messages_other", must_exist=True, is_type_of=list, len_min=1),
         Validator("timeout_leaderboard_webhook_urls", is_type_of=list),
+        Validator("timeout_intervals", must_exist=True, is_type_of=list)
     ]
 )
 
@@ -74,6 +75,10 @@ def timeout_protected_messages_other() -> List[str]:
 
 def timeout_leaderboard_webhook_urls() -> Optional[List[str]]:
     return _settings.get("timeout_leaderboard_webhook_urls")
+
+
+def timeout_intervals() -> List[Dict]:
+    return _settings.get("timeout_intervals")
 
 # `envvar_prefix` = export envvars with `export ROULETTE_FOO=bar`.
 # `settings_files` = Load these files in the order.

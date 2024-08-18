@@ -1,5 +1,7 @@
 
 [default]
+# The token used to log into the Discord bot.
+# Note: Consider providing this via environment variable instead.
 bot_token = "<bot_token>"
 
 # List of Python regex patterns (as strings)
@@ -52,10 +54,10 @@ timeout_protected_messages_other = ["<list_of_messages>"]
 timeout_leaderboard_webhook_urls = ["<list_of_urls>"]
 
 # List of Mute intervals
-# Bounds are inclusive (bound.lower, bound.upper)
+# Bounds are inclusive [bound.lower, bound.upper]
 # Weight: Non-cumulative weight for each interval.
 # Supported suffixes: m, h, d, w
-# Repeat another [[<STAGING_ENV>.intervals]] to add a new interval.
-[[default.intervals]]
+# Repeat another [[<STAGING_ENV>.timeout_intervals]] to add a new interval.
+[[default.timeout_intervals]]
 bound = { "lower" = "1m", "upper" = "5m"}
 weight = 100

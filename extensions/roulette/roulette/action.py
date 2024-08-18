@@ -1,6 +1,7 @@
-import requests
+import logging
+import random
 
-from .. import config
+from ..config import config
 
 _WEEKS_IN_MINUTES = 10080
 _DAYS_IN_MINUTES = 1440
@@ -13,11 +14,12 @@ _TIME_CONVERSION_INTERVALS = (
     ('minutes', _MINUTES_IN_MINUTES)
 )
 
+logger = logging.getLogger("roulette")
+
 
 class Timeout:
-    def __init__(self, res):
-        self._duration: int = res["duration_mins"]
-        self._duration_label: str = res["duration_display_str"]
+    def __init__(self, duration: int):
+        self._duration: int = duration
 
     @property
     def duration(self):
@@ -25,7 +27,7 @@ class Timeout:
 
     @property
     def duration_label(self):
-        return self._duration_label
+        return convert_minutes_to_display_str(self._duration)
 
 
 def fetch() -> Timeout | None:
@@ -33,19 +35,36 @@ def fetch() -> Timeout | None:
     Fetches an action (i.e. timeout) to apply to the user.
     :return:
     """
-    return None
-    """
-    try:
-        res = requests.get(settings.get("remote_roulette_url"))
-        action = res.json()["action"]
-        if "timeout" in action:
-            return Timeout(action["timeout"])
-    # TODO: Tighten exception catching
-    except Exception:
-        return
-    """
+    return generate_timeout()
+
 
 # TODO: Move timeout logic into its own directory.
+
+def generate_timeout() -> Timeout:
+    # Load the list of intervals used to determine mutes.
+    intervals = config.roll_intervals()
+    logger.debug("Loaded {count} intervals.".format(count=int(len(intervals))))
+
+    # First, select an interval to load
+    # Create the bounds tuples and their respective weights
+    bounds = [interval["bound"] for interval in intervals]
+    weights = [int(interval["weight"]) for interval in intervals]
+    interval = random.choices(bounds, weights=weights, k=1)[0]
+
+    # From the interval, randomly select a time.
+    # The interval is a Tuple[lower_bound: str, upper_bound: str]
+    lower_bound = convert_interval_str_to_minutes(interval["lower"])
+    upper_bound = convert_interval_str_to_minutes(interval["upper"])
+
+    mute_duration = random.randint(lower_bound, upper_bound)
+    logger.debug(
+        "Selected mute duration: ({mute_duration}) from lower bound: ({lower_bound}) and upper bound: ({upper_bound}).".format(
+            mute_duration=convert_minutes_to_display_str(mute_duration),
+            lower_bound=convert_minutes_to_display_str(lower_bound),
+            upper_bound=convert_minutes_to_display_str(upper_bound)))
+
+    return Timeout(mute_duration)
+
 
 def convert_interval_str_to_minutes(interval: str) -> int:
     # Strip out non-numeric characters
@@ -62,6 +81,7 @@ def convert_interval_str_to_minutes(interval: str) -> int:
 
 def convert_minutes_to_display_str(minutes: int, granularity=2) -> str:
     # Edge case: This function doesn't properly handle 0 minutes
+    # TODO: Respect granularity.
     if minutes == 0:
         return "0 minutes"
     result = list()

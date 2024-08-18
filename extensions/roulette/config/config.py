@@ -7,7 +7,7 @@ global-level config.
 import config as root_config
 import re
 
-from typing import Tuple
+from typing import Dict, Tuple
 
 
 def match_patterns() -> Tuple[re.Pattern[str]]:
@@ -94,6 +94,19 @@ def timeout_protected_messages_other() -> Tuple[str]:
     - {timeout_duration_label}: A display of the user's timeout duration
     """
     return tuple(str(m) for m in root_config.timeout_protected_messages_other())
+
+
+def roll_intervals() -> Tuple[Dict]:
+    """
+    A list of interval settings used to determine the gacha roll chances.
+    Each interval is a dict, represented with the following keys:
+    # Supported suffixes: m, h, d, w
+    - bounds["lower"]: Lower bound (inclusive) of the roll value for this interval.
+    - bounds["upper"]: Upper bound (inclusive) of the roll value for this interval.
+    - weight: An integer indicating the non-cumulative weight (chance) for this interval.
+    """
+    # TODO: Maybe consider adding some kind of validation logic here.
+    return tuple(root_config.timeout_intervals())
 
 
 def leaderboard_webhook_urls() -> Tuple[str]:
