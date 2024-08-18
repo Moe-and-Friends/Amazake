@@ -14,7 +14,7 @@ class Roll(Cog):
     def __init__(self, bot: Bot):
         self.bot = bot
         self.logger = logging.getLogger("roulette.roll")
-        self.logger.info("Loaded Roulette cog")
+        self.logger.info("Loaded Roll cog")
 
     async def cog_command_error(self, ctx, error: Exception) -> None:
         self.logger.warning(str(error))

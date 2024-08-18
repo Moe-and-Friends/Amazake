@@ -10,7 +10,7 @@ services:
         max-file: 1
     restart: unless-stopped
     volumes:
-      - ./config/settings.toml:/roll/config/settings.toml:ro # Readonly
-      - ./config/settings.local.toml:/roll/config/settings.local.toml:ro # Readonly
-      - ./config/.secrets.toml:/roll/config/.secrets.toml:ro # Readonly
-      - ./config/.secrets.local.toml:/roll/config/.secrets.local.toml:ro # Readonly
+      - ./config/settings.toml:/amazake/config/settings.toml:ro # Readonly
+      - ./config/settings.local.toml:/amazake/config/settings.local.toml:ro # Readonly
+      - ./config/.secrets.toml:/amazake/config/.secrets.toml:ro # Readonly
+      - ./config/.secrets.local.toml:/amazake/config/.secrets.local.toml:ro # Readonly

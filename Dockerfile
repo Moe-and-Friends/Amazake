@@ -8,8 +8,8 @@ RUN apk add git
 COPY requirements.txt /opt/requirements.txt
 RUN pip install -r /opt/requirements.txt && rm /opt/requirements.txt
 
-COPY *.py /roulette/
-COPY extensions /roulette/extensions
+COPY *.py /amazake/
+COPY extensions /amazake/extensions
 
-WORKDIR /roulette
+WORKDIR /amazake
 ENTRYPOINT ["python3", "main.py"]
