@@ -66,6 +66,7 @@ class Roulette(Cog):
             self.logger.debug(f"Starting roulette for users: {', '.join([member.name for member in targets])}")
 
             for target in targets:
+                self.logger.info(f"Now processing roulette for user: {target.name}")
                 effect = action.fetch()
                 if isinstance(effect, action.Timeout):
                     self.logger.info(f"Rolled timeout of length {effect.duration_label} for {target.name}")
@@ -105,6 +106,8 @@ class Roulette(Cog):
         if (is_moderator or is_administrator) and len(mentions) > 0:
             self.logger.debug("User is a moderator or administrator, targeting mentioned users instead.")
             return mentions
+
+        self.logger.debug("Targeting the message author.")
         return {message.author}
 
     async def _timeout(self,
@@ -114,14 +117,17 @@ class Roulette(Cog):
                        target: Member):
 
         is_self = target == message.author
+        self.logger.debug(f"Message is targeting self: {is_self}")
 
         # If target is protected, respond with a safe message and return immediately.
         if self._is_protected(target) or self._is_moderator(target) or self._is_admin(target):
             if is_self:
+                self.logger.info("Responding with protected message for self")
                 reply = random.choice(config.timeout_protected_messages_self())
                 await message.reply(reply.format(timeout_user_name=target.display_name,
                                                  timeout_duration_label=duration_label))
             else:
+                self.logger.info("Responding with protected message for targeted user")
                 reply = random.choice(config.timeout_protected_messages_other())
                 await message.reply(reply.format(timeout_user_name=target.display_name,
                                                  timeout_duration_label=duration_label))
@@ -137,10 +143,12 @@ class Roulette(Cog):
         self.logger.info(f"Timed {target.name} out for {duration_label}")
 
         if is_self:
+            self.logger.info("Responding with affected message for self")
             reply = random.choice(config.timeout_affected_messages_self())
             await message.reply(reply.format(timeout_user_name=target.display_name,
                                              timeout_duration_label=duration_label))
         else:
+            self.logger.info("Responding with affected message for targeted user")
             reply = random.choice(config.timeout_affected_messages_other())
             await message.reply(reply.format(timeout_user_name=target.display_name,
                                              timeout_duration_label=duration_label))
