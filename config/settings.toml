@@ -1,0 +1,61 @@
+
+[default]
+bot_token = "<bot_token>"
+
+# List of Python regex patterns (as strings)
+# Messages that satisfy this pattern will trigger the roll
+match_patterns = ["<list_of_regex_patterns>"]
+
+# Channels that should be observed.
+channels = ["<list_of_channel_ids"]
+
+# List of Discord Roles
+# These roles will be immune to being timed out.
+protected = ["<list_of_role_ids>"]
+
+# List of Discord Roles
+# These roles will be able to roll for other roles.
+# Moderators are implicitly protected users.
+moderator = ["<list_of_role_ids>"]
+
+# List of Discord User IDs
+# Reserved superuser role for future use.
+# Administrators are implicitly moderators.
+administrator = ["<list_of_role_ids>"]
+
+# A list of messages that could be used to reply to a user who timed themselves out.
+# Supported inline variables:
+# {timeout_user_name}: The display name of the user (will not be tagged)
+# {timeout_duration_label}: A display of the user's timeout duration
+timeout_affected_messages_self = ["<list_of_messages>"]
+
+# A list of a messages that could be used to reply to a moderator or administrator who timed another user out.
+# Supported inline variables:
+# {timeout_user_name}: The display name of the user (will not be tagged)
+# {timeout_duration_label}: A display of the user's timeout duration
+timeout_affected_messages_other = ["<list_of_messages>"]
+
+# A list of messages that could be used to reply to a user who attempted to time themselves out, but was protected.
+# Supported inline variables:
+# {timeout_user_name}: The display name of the user (will not be tagged)
+# {timeout_duration_label}: A display of the user's timeout duration
+timeout_protected_messages_self = ["<list_of_messages>"]
+
+# A list of messages that could be used to reply to a moderator or administrator who attempted to timeout a protected user.
+# Supported inline variables:
+# {timeout_user_name}: The display name of the user (will not be tagged)
+# {timeout_duration_label}: A display of the user's mute duration
+timeout_protected_messages_other = ["<list_of_messages>"]
+
+# A list of URLs that will receive notifications whenever a user is muted.
+# TODO: Add the JSON body here.
+timeout_leaderboard_webhook_urls = ["<list_of_urls>"]
+
+# List of Mute intervals
+# Bounds are inclusive (bound.lower, bound.upper)
+# Weight: Non-cumulative weight for each interval.
+# Supported suffixes: m, h, d, w
+# Repeat another [[<STAGING_ENV>.intervals]] to add a new interval.
+[[default.intervals]]
+bound = { "lower" = "1m", "upper" = "5m"}
+weight = 100

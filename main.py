@@ -1,9 +1,9 @@
 import sys
 
+import config
 import discord
 import logging
 
-from config import settings
 from discord.ext.commands import Bot
 
 
@@ -23,4 +23,4 @@ async def on_ready():
     await bot.load_extension("extensions.roulette.extension")
 
 if __name__ == '__main__':
-    bot.run(settings.get("discord_bot_token"), log_handler=handler, log_level=logging.INFO)
+    bot.run(config.bot_token(), log_handler=handler, log_level=logging.INFO)

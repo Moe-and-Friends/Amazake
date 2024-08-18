@@ -4,7 +4,6 @@ import toml
 import sys
 
 from cerberus import Validator
-from config import settings
 from typing import Tuple, Set
 
 # TODO: Ablate this file and move all configurations to be locally defined.
@@ -112,7 +111,7 @@ class Config:
 
 def load_config() -> Config:
     try:
-        raw_config = requests.get(settings.get("remote_config_url"))
+        raw_config = requests.get("https://raw.githubusercontent.com/Moe-and-Friends/Configurations/main/roulette2.toml")
         config = toml.loads(raw_config.text)
         if not _VALIDATOR.validate(config):
             logger.critical(_VALIDATOR.errors)
