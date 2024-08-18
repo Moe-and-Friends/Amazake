@@ -109,6 +109,13 @@ def roll_timeout_intervals() -> Tuple[Dict]:
     return tuple(root_config.roulette_roll_timeout_intervals())
 
 
+def roll_timeout_response_delay_seconds() -> int:
+    """
+    :return: An upper bound delay between the roll and when the bot should respond, or 0 to disable.
+    """
+    return root_config.roulette_roll_timeout_response_delay_seconds() or 0
+
+
 def roll_timeout_leaderboard_webhook_urls() -> Tuple[str]:
     """
     :return: A list of webhook URLs to send action events post-roll.

@@ -4,6 +4,7 @@ import random
 from . import action, debounce, stats
 from ..config import config
 
+from asyncio import sleep
 from datetime import timedelta
 from discord import Member, Message, User
 from discord.ext.commands import Bot, Cog, guild_only
@@ -68,6 +69,12 @@ class Roll(Cog):
             for target in targets:
                 self.logger.info(f"Now processing roll for user: {target.name}")
                 effect = action.fetch()
+
+                if configured_delay := config.roll_timeout_response_delay_seconds():
+                    delay = random.randint(1, configured_delay)
+                    self.logger.debug(f"Artificially waiting {delay} seconds before continuing")
+                    await sleep(delay)
+
                 if isinstance(effect, action.Timeout):
                     self.logger.info(f"Rolled timeout of length {effect.duration_label} for {target.name}")
                     await self._timeout(timedelta(minutes=effect.duration), effect.duration_label, message, target)

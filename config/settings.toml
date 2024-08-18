@@ -59,6 +59,12 @@ roulette_roll_timeout_protected_messages_other = ["<list_of_messages>"]
 # TODO: Add the JSON body here.
 roulette_roll_timeout_leaderboard_webhook_urls = ["<list_of_urls>"]
 
+# An int representing an artifical "delay" that will be added after the roll.
+# This creates a "<bot_name> is typing..." effect for several seconds.
+# A value will be randomly selected between 1s and this value.
+# Disable by not setting (or set to 0)
+roulette_roll_timeout_response_delay_seconds = 3
+
 # List of timeout intervals
 # Bounds are inclusive [bound.lower, bound.upper]
 # Weight: Non-cumulative weight for each interval.
