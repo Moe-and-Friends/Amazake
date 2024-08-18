@@ -24,14 +24,13 @@ formatter = ColoredFormatter(
     style='%'
 )
 
-# Create a separate StreamHandler so Discord.py can also use the same log formatting.
+# Configure the root logger so all loggers have the same general output.
 stream = logging.StreamHandler()
 stream.setFormatter(formatter)
+logging.root.addHandler(stream)
+logging.root.setLevel(config.log_level())
 
-# Set the "roulette" logger used across this app.
-logger = logging.getLogger("roulette")
-logger.setLevel(logging.DEBUG)
-logger.addHandler(stream)
+logger = logging.getLogger(__name__)
 
 bot = Bot(command_prefix="roll", intents=intents)
 
@@ -42,4 +41,5 @@ async def on_ready():
     await bot.load_extension("extensions.roulette.extension")
 
 if __name__ == '__main__':
+    # Note: Discord.py configures its own logger [prior to the root logger] - keep this at INFO.
     bot.run(config.bot_token(), log_handler=stream, log_level=logging.INFO)

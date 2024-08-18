@@ -13,6 +13,7 @@ _settings = Dynaconf(
     ],
     validators=[
         # Bot settings
+        Validator("log_level", is_type_of=str),
         Validator("bot_token", must_exist=True, is_type_of=str),
         # Roulette settings
         Validator("match_patterns", must_exist=True, is_type_of=list, len_min=1),
@@ -28,6 +29,13 @@ _settings = Dynaconf(
         Validator("timeout_intervals", must_exist=True, is_type_of=list)
     ]
 )
+
+
+def log_level() -> str:
+    """
+    :return: The logging level that should be used for this application. Does not affect Discord.py logging.
+    """
+    return str(_settings.get("log_level", "INFO")).upper()
 
 
 def bot_token() -> str:

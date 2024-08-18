@@ -3,7 +3,7 @@ import logging
 from discord.ext.commands import Bot
 from .roulette.cog import Roulette
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("roulette")
 
 
 async def setup(bot: Bot) -> None:

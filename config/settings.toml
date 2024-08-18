@@ -1,5 +1,11 @@
 
 [default]
+
+# Logger output level.
+# Note: Consider providing this via environment variable instead.
+# Use: [DEBUG, INFO, WARNING, ERROR, CRITICAL]
+log_level = "INFO"
+
 # The token used to log into the Discord bot.
 # Note: Consider providing this via environment variable instead.
 bot_token = "<bot_token>"
