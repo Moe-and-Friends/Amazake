@@ -16,17 +16,17 @@ _settings = Dynaconf(
         Validator("log_level", is_type_of=str),
         Validator("bot_token", must_exist=True, is_type_of=str),
         # Roulette settings
-        Validator("match_patterns", must_exist=True, is_type_of=list, len_min=1),
-        Validator("channels", must_exist=True, is_type_of=list, len_min=1),
-        Validator("protected", is_type_of=list),
-        Validator("moderator", is_type_of=list),
-        Validator("administrator", is_type_of=list),
-        Validator("timeout_affected_messages_self", must_exist=True, is_type_of=list, len_min=1),
-        Validator("timeout_affected_messages_other", must_exist=True, is_type_of=list, len_min=1),
-        Validator("timeout_protected_messages_self", must_exist=True, is_type_of=list, len_min=1),
-        Validator("timeout_protected_messages_other", must_exist=True, is_type_of=list, len_min=1),
-        Validator("timeout_leaderboard_webhook_urls", is_type_of=list),
-        Validator("timeout_intervals", must_exist=True, is_type_of=list)
+        Validator("roulette_channels", must_exist=True, is_type_of=list, len_min=1),
+        Validator("roulette_protected_roles", is_type_of=list),
+        Validator("roulette_moderator_roles", is_type_of=list),
+        Validator("roulette_administrator_users", is_type_of=list),
+        Validator("roulette_roll_match_patterns", must_exist=True, is_type_of=list, len_min=1),
+        Validator("roulette_roll_timeout_affected_messages_self", must_exist=True, is_type_of=list, len_min=1),
+        Validator("roulette_roll_timeout_affected_messages_other", must_exist=True, is_type_of=list, len_min=1),
+        Validator("roulette_roll_timeout_protected_messages_self", must_exist=True, is_type_of=list, len_min=1),
+        Validator("roulette_roll_timeout_protected_messages_other", must_exist=True, is_type_of=list, len_min=1),
+        Validator("roulette_roll_timeout_leaderboard_webhook_urls", is_type_of=list),
+        Validator("roulette_roll_timeout_intervals", must_exist=True, is_type_of=list)
     ]
 )
 
@@ -45,48 +45,48 @@ def bot_token() -> str:
     return _settings.get("bot_token")
 
 
-def match_patterns() -> List[str]:
-    return _settings.get("match_patterns")
+def roulette_roll_match_patterns() -> List[str]:
+    return _settings.get("roulette_roll_match_patterns")
 
 
-def channels() -> List[str]:
-    return _settings.get("channels")
+def roulette_channels() -> List[str]:
+    return _settings.get("roulette_channels")
 
 
-def protected() -> Optional[List[str]]:
-    return _settings.get("protected")
+def roulette_protected_roles() -> Optional[List[str]]:
+    return _settings.get("roulette_protected_roles")
 
 
-def moderator() -> Optional[List[str]]:
-    return _settings.get("moderator")
+def roulette_moderator_roles() -> Optional[List[str]]:
+    return _settings.get("roulette_moderator_roles")
 
 
-def administrator() -> Optional[List[str]]:
-    return _settings.get("administrator")
+def roulette_administrator_users() -> Optional[List[str]]:
+    return _settings.get("roulette_administrator_users")
 
 
-def timeout_affected_messages_self() -> List[str]:
-    return _settings.get("timeout_affected_messages_self")
+def roulette_roll_timeout_affected_messages_self() -> List[str]:
+    return _settings.get("roulette_roll_timeout_affected_messages_self")
 
 
-def timeout_affected_messages_other() -> List[str]:
-    return _settings.get("timeout_affected_messages_other")
+def roulette_roll_timeout_affected_messages_other() -> List[str]:
+    return _settings.get("roulette_roll_timeout_affected_messages_other")
 
 
-def timeout_protected_messages_self() -> List[str]:
-    return _settings.get("timeout_protected_messages_self")
+def roulette_roll_timeout_protected_messages_self() -> List[str]:
+    return _settings.get("roulette_roll_timeout_protected_messages_self")
 
 
-def timeout_protected_messages_other() -> List[str]:
-    return _settings.get("timeout_protected_messages_other")
+def roulette_roll_timeout_protected_messages_other() -> List[str]:
+    return _settings.get("roulette_roll_timeout_protected_messages_other")
 
 
-def timeout_leaderboard_webhook_urls() -> Optional[List[str]]:
-    return _settings.get("timeout_leaderboard_webhook_urls")
+def roulette_roll_timeout_leaderboard_webhook_urls() -> Optional[List[str]]:
+    return _settings.get("roulette_roll_timeout_leaderboard_webhook_urls")
 
 
-def timeout_intervals() -> List[Dict]:
-    return _settings.get("timeout_intervals")
+def roulette_roll_timeout_intervals() -> List[Dict]:
+    return _settings.get("roulette_roll_timeout_intervals")
 
 # `envvar_prefix` = export envvars with `export ROULETTE_FOO=bar`.
 # `settings_files` = Load these files in the order.

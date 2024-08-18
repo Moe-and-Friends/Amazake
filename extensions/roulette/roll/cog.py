@@ -42,7 +42,7 @@ class Roll(Cog):
 
         # Check message against all match patterns
         is_match = False
-        for pattern in config.match_patterns():
+        for pattern in config.roll_match_patterns():
             if pattern.search(message.content):
                 is_match = True
                 break
@@ -123,12 +123,12 @@ class Roll(Cog):
         if self._is_protected(target) or self._is_moderator(target) or self._is_admin(target):
             if is_self:
                 self.logger.info("Responding with protected message for self")
-                reply = random.choice(config.timeout_protected_messages_self())
-                await message.reply(reply.format(timeout_user_name=target.display_name,
-                                                 timeout_duration_label=duration_label))
+                reply = random.choice(config.roll_timeout_protected_messages_self())
+                await message.reply(reply.format(user_name=target.display_name,
+                                                 duration_label=duration_label))
             else:
                 self.logger.info("Responding with protected message for targeted user")
-                reply = random.choice(config.timeout_protected_messages_other())
+                reply = random.choice(config.roll_timeout_protected_messages_other())
                 await message.reply(reply.format(timeout_user_name=target.display_name,
                                                  timeout_duration_label=duration_label))
             return
@@ -144,13 +144,13 @@ class Roll(Cog):
 
         if is_self:
             self.logger.info("Responding with affected message for self")
-            reply = random.choice(config.timeout_affected_messages_self())
-            await message.reply(reply.format(timeout_user_name=target.display_name,
-                                             timeout_duration_label=duration_label))
+            reply = random.choice(config.roll_timeout_affected_messages_self())
+            await message.reply(reply.format(user_name=target.display_name,
+                                             duration_label=duration_label))
         else:
             self.logger.info("Responding with affected message for targeted user")
-            reply = random.choice(config.timeout_affected_messages_other())
-            await message.reply(reply.format(timeout_user_name=target.display_name,
-                                             timeout_duration_label=duration_label))
+            reply = random.choice(config.roll_timeout_affected_messages_other())
+            await message.reply(reply.format(user_name=target.display_name,
+                                             duration_label=duration_label))
 
         stats.timeout_record_stats(duration, message)

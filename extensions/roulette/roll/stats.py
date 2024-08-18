@@ -23,7 +23,7 @@ def timeout_record_stats(duration: timedelta, message: Message) -> None:
     :param duration: A timedelta representing the total duration of the timeout
     :param message: The original message that triggered the timeout
     """
-    for leaderboard_url in config.leaderboard_webhook_urls():
+    for leaderboard_url in config.roll_timeout_leaderboard_webhook_urls():
         # Note: The IDs must be passed as strings to avoid auto-rounding.
         requests.post(leaderboard_url, json={
             "discord": {

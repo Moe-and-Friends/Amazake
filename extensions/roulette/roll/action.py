@@ -43,7 +43,7 @@ def fetch() -> Timeout | None:
 
 def _generate_timeout() -> Timeout:
     # Load the list of intervals used to determine mutes.
-    intervals = config.roll_intervals()
+    intervals = config.roll_timeout_intervals()
     logger.debug("Loaded {count} intervals.".format(count=int(len(intervals))))
 
     # First, select an interval to load
