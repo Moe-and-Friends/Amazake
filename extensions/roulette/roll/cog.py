@@ -10,10 +10,10 @@ from discord.ext.commands import Bot, Cog, guild_only
 from typing import Set
 
 
-class Roulette(Cog):
+class Roll(Cog):
     def __init__(self, bot: Bot):
         self.bot = bot
-        self.logger = logging.getLogger("roulette")
+        self.logger = logging.getLogger("roulette.roll")
         self.logger.info("Loaded Roulette cog")
 
     async def cog_command_error(self, ctx, error: Exception) -> None:
@@ -63,10 +63,10 @@ class Roulette(Cog):
 
             # Determine the targets for this rollout command.
             targets = self._determine_targets(message)
-            self.logger.debug(f"Starting roulette for users: {', '.join([member.name for member in targets])}")
+            self.logger.debug(f"Starting roll for users: {', '.join([member.name for member in targets])}")
 
             for target in targets:
-                self.logger.info(f"Now processing roulette for user: {target.name}")
+                self.logger.info(f"Now processing roll for user: {target.name}")
                 effect = action.fetch()
                 if isinstance(effect, action.Timeout):
                     self.logger.info(f"Rolled timeout of length {effect.duration_label} for {target.name}")

@@ -14,7 +14,7 @@ _TIME_CONVERSION_INTERVALS = (
     ('minutes', _MINUTES_IN_MINUTES)
 )
 
-logger = logging.getLogger("roulette")
+logger = logging.getLogger("roulette.roll")
 
 
 class Timeout:
@@ -27,20 +27,21 @@ class Timeout:
 
     @property
     def duration_label(self):
-        return convert_minutes_to_display_str(self._duration)
+        return _convert_minutes_to_display_str(self._duration)
 
 
 def fetch() -> Timeout | None:
     """
     Fetches an action (i.e. timeout) to apply to the user.
-    :return:
+    :return: One of the action types.
     """
-    return generate_timeout()
+    # Currently, Timeout is the only action that will be applied.
+    return _generate_timeout()
 
 
 # TODO: Move timeout logic into its own directory.
 
-def generate_timeout() -> Timeout:
+def _generate_timeout() -> Timeout:
     # Load the list of intervals used to determine mutes.
     intervals = config.roll_intervals()
     logger.debug("Loaded {count} intervals.".format(count=int(len(intervals))))
@@ -53,20 +54,20 @@ def generate_timeout() -> Timeout:
 
     # From the interval, randomly select a time.
     # The interval is a Tuple[lower_bound: str, upper_bound: str]
-    lower_bound = convert_interval_str_to_minutes(interval["lower"])
-    upper_bound = convert_interval_str_to_minutes(interval["upper"])
+    lower_bound = _convert_interval_str_to_minutes(interval["lower"])
+    upper_bound = _convert_interval_str_to_minutes(interval["upper"])
 
     mute_duration = random.randint(lower_bound, upper_bound)
     logger.debug(
         "Selected mute duration: ({mute_duration}) from lower bound: ({lower_bound}) and upper bound: ({upper_bound}).".format(
-            mute_duration=convert_minutes_to_display_str(mute_duration),
-            lower_bound=convert_minutes_to_display_str(lower_bound),
-            upper_bound=convert_minutes_to_display_str(upper_bound)))
+            mute_duration=_convert_minutes_to_display_str(mute_duration),
+            lower_bound=_convert_minutes_to_display_str(lower_bound),
+            upper_bound=_convert_minutes_to_display_str(upper_bound)))
 
     return Timeout(mute_duration)
 
 
-def convert_interval_str_to_minutes(interval: str) -> int:
+def _convert_interval_str_to_minutes(interval: str) -> int:
     # Strip out non-numeric characters
     time = int("".join(filter(str.isdigit, interval)))
     if interval.endswith("m"):
@@ -79,7 +80,7 @@ def convert_interval_str_to_minutes(interval: str) -> int:
         return time * _WEEKS_IN_MINUTES
 
 
-def convert_minutes_to_display_str(minutes: int, granularity=2) -> str:
+def _convert_minutes_to_display_str(minutes: int, granularity=2) -> str:
     # Edge case: This function doesn't properly handle 0 minutes
     # TODO: Respect granularity.
     if minutes == 0:

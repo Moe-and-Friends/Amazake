@@ -5,7 +5,7 @@ from ..config import config
 from datetime import timedelta
 from discord import Message
 
-logger = logging.getLogger("roulette")
+logger = logging.getLogger("roulette.roll")
 
 
 def timeout_record_stats(duration: timedelta, message: Message) -> None:

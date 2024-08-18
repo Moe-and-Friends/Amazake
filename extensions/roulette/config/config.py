@@ -1,7 +1,7 @@
 """
 Settings used by the Roulette extension.
 
-Files under extensions/roulette should always use configs defined here, not the
+Files under extensions/roll should always use configs defined here, not the
 global-level config.
 """
 import config as root_config
