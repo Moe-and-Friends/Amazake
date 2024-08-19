@@ -181,8 +181,8 @@ class Roll(Cog):
             else:
                 self.logger.info("Responding with protected message for targeted user")
                 reply = random.choice(config.roll_timeout_protected_messages_other())
-                await message.reply(reply.format(timeout_user_name=target.display_name,
-                                                 timeout_duration_label=duration_label))
+                await message.reply(reply.format(user_name=target.display_name,
+                                                 duration_label=duration_label))
             return
 
         # Non-native mutes aren't supported yet.
