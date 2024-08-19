@@ -102,7 +102,8 @@ class Roll(Cog):
     async def _determine_mentions(self, message: Message) -> Set[Member]:
         """
         This is an investigative workaround to find all mentions + replies in a message.
-        Occasionally for unknown reasons, the Discord API will not include replies as mentions.
+        The Discord API doesn't always fetch reference (replied-to) messages, likely to reduce API calls. But this bot
+        still needs it to enable mods+ to trigger rolls for other users via reply-mention.
 
         This function will filter out Users (e.g. DMs) only.
         """
