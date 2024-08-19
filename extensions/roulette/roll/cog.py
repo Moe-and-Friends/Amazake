@@ -114,23 +114,29 @@ class Roll(Cog):
             self.logger.debug(f'Using mentions provided by the API: {", ".join(mentioned_users)}')
             return mentions
 
-        if not message.interaction_metadata or not message.interaction_metadata.original_response_message_id:
-            self.logger.debug("Message doesn't have any interactions, so returning empty collection of mentions.")
+        # If the message outright doesn't have a reference, there is no reply mention.
+        # Early return if so.
+        if not message.reference or not message.reference.message_id:
+            self.logger.debug("Message doesn't have any references , so returning empty collection of mentions.")
             return set()
 
-        # It's possible that mentions may not contain mentions in the reply due to a bug in the API.
-        # Note: `original_response_message` returns None if the message also isn't in the cache.
-        reply_message = message.interaction_metadata.original_response_message
-        # If the message isn't in the cache, try to fetch it.
-        if not reply_message:
-            self.logger.debug("Original response mention was not found in the cache, attempting to fetch now...")
-            reply_message_id = message.interaction_metadata.original_response_message_id
-            reply_message = await message.channel.get_partial_message(reply_message_id).fetch()
-            self.logger.debug(f"Fetched message {reply_message.id} from the Discord API")
+        # Fetch the responded-to message from Discord.
+        reference_message = await message.channel.get_partial_message(message.reference.message_id).fetch()
+        if reference_message:
+            self.logger.debug(f"Fetched reference message {reference_message.id} from the Discord API")
+        else:
+            self.logger.warning(f"Unable to resolve reference message {reference_message.id} from the Discord API. Assuming no mentions...")
+            return set()
+
+        reference_message_author = await message.guild.fetch_member(reference_message.author.id)
+        if reference_message_author:
+            self.logger.debug(f"Fetched reference message author {reference_message_author.name}")
+        else:
+            self.logger.warning(f"Unable to fetch reference message author from the Discord API. Assuming no mentions...")
+            return set()
 
         # Note: It's okay to return mentions of the bot itself.
-        self.logger.debug(f"Returning reply message author {reply_message.author} as mentioned user.")
-        return {reply_message.author}
+        return {reference_message_author}
 
     async def _determine_targets(self, message: Message) -> Set[Member]:
         """
@@ -142,7 +148,6 @@ class Roll(Cog):
         is_administrator = self._is_admin(message.author)
 
         # Ignore mentions of the bot user itself.
-
         mentions = set([mention for mention in await self._determine_mentions(message) if mention.id != self.bot.user.id])
         if (is_moderator or is_administrator) and len(mentions) > 0:
             self.logger.debug("User is a moderator or administrator, targeting mentioned users instead.")
