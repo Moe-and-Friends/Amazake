@@ -117,7 +117,7 @@ class Roll(Cog):
         # If the message outright doesn't have a reference, there is no reply mention.
         # Early return if so.
         if not message.reference or not message.reference.message_id:
-            self.logger.debug("Message doesn't have any references , so returning empty collection of mentions.")
+            self.logger.debug("Message doesn't have any references, so returning empty collection of mentions.")
             return set()
 
         # Fetch the responded-to message from Discord.
@@ -147,13 +147,18 @@ class Roll(Cog):
         is_moderator = self._is_moderator(message.author)
         is_administrator = self._is_admin(message.author)
 
+        # Check if user *can* even mention first, to reduce fetch calls to the API.
+        if not is_moderator and not is_administrator:
+            self.logger.debug("Message author cannot roll for others - returning author as target.")
+            return {message.author}
+
         # Ignore mentions of the bot user itself.
         mentions = set([mention for mention in await self._determine_mentions(message) if mention.id != self.bot.user.id])
-        if (is_moderator or is_administrator) and len(mentions) > 0:
+        if len(mentions) > 0:
             self.logger.debug("User is a moderator or administrator, targeting mentioned users instead.")
             return mentions
 
-        self.logger.debug("Returning message author as mention.")
+        self.logger.debug("Didn't find any mentions, returning message author as target.")
         return {message.author}
 
     async def _timeout(self,
