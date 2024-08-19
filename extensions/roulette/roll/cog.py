@@ -63,7 +63,7 @@ class Roll(Cog):
         async with message.channel.typing():
 
             # Determine the targets for this rollout command.
-            targets = self._determine_targets(message)
+            targets = await self._determine_targets(message)
             self.logger.debug(f"Starting roll for users: {', '.join([member.name for member in targets])}")
 
             for target in targets:
@@ -99,7 +99,47 @@ class Roll(Cog):
         self.logger.debug(f"User {user.name}'s admin status: {is_admin}")
         return is_admin
 
-    def _determine_targets(self, message: Message) -> Set[Member]:
+    async def _determine_mentions(self, message: Message) -> Set[Member]:
+        """
+        This is an investigative workaround to find all mentions + replies in a message.
+        The Discord API doesn't always fetch reference (replied-to) messages, likely to reduce API calls. But this bot
+        still needs it to enable mods+ to trigger rolls for other users via reply-mention.
+
+        This function will filter out Users (e.g. DMs) only.
+        """
+        # Mentions are only supported in Guilds. Filter out User mentions (i.e. in DMs).
+        mentions = set([mention for mention in message.mentions if isinstance(mention, Member)])
+        # If there are mentions already (usual case), then the API worked okay and return immediately.
+        if mentions:
+            mentioned_users = [mention.name for mention in mentions]
+            self.logger.debug(f'Using mentions provided by the API: {", ".join(mentioned_users)}')
+            return mentions
+
+        # If the message outright doesn't have a reference, there is no reply mention.
+        # Early return if so.
+        if not message.reference or not message.reference.message_id:
+            self.logger.debug("Message doesn't have any references, so returning empty collection of mentions.")
+            return set()
+
+        # Fetch the responded-to message from Discord.
+        reference_message = await message.channel.get_partial_message(message.reference.message_id).fetch()
+        if reference_message:
+            self.logger.debug(f"Fetched reference message {reference_message.id} from the Discord API")
+        else:
+            self.logger.warning(f"Unable to resolve reference message {reference_message.id} from the Discord API. Assuming no mentions...")
+            return set()
+
+        reference_message_author = await message.guild.fetch_member(reference_message.author.id)
+        if reference_message_author:
+            self.logger.debug(f"Fetched reference message author {reference_message_author.name}")
+        else:
+            self.logger.warning(f"Unable to fetch reference message author from the Discord API. Assuming no mentions...")
+            return set()
+
+        # Note: It's okay to return mentions of the bot itself.
+        return {reference_message_author}
+
+    async def _determine_targets(self, message: Message) -> Set[Member]:
         """
         Determines the actual targets of a given message.
         :param message: The message event to process
@@ -108,13 +148,18 @@ class Roll(Cog):
         is_moderator = self._is_moderator(message.author)
         is_administrator = self._is_admin(message.author)
 
+        # Check if user *can* even mention first, to reduce fetch calls to the API.
+        if not is_moderator and not is_administrator:
+            self.logger.debug("Message author cannot roll for others - returning author as target.")
+            return {message.author}
+
         # Ignore mentions of the bot user itself.
-        mentions = set([mention for mention in message.mentions if mention.id != self.bot.user.id])
-        if (is_moderator or is_administrator) and len(mentions) > 0:
+        mentions = set([mention for mention in await self._determine_mentions(message) if mention.id != self.bot.user.id])
+        if len(mentions) > 0:
             self.logger.debug("User is a moderator or administrator, targeting mentioned users instead.")
             return mentions
 
-        self.logger.debug("Targeting the message author.")
+        self.logger.debug("Didn't find any mentions, returning message author as target.")
         return {message.author}
 
     async def _timeout(self,
