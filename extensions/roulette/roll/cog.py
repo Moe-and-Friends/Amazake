@@ -6,7 +6,7 @@ from ..config import config
 
 from asyncio import sleep
 from datetime import timedelta
-from discord import Member, Message, User
+from discord import Member, Message, User, Role
 from discord.ext.commands import Bot, Cog, guild_only
 from typing import Set
 
@@ -99,6 +99,13 @@ class Roll(Cog):
         self.logger.debug(f"User {user.name}'s admin status: {is_admin}")
         return is_admin
 
+    def _get_timeout_roles(self, message: Message) -> Set[Role]:
+        role_ids = config.timeout_roles()
+        timeout_roles = set()
+        for role_id in role_ids:
+            timeout_roles.add(action.Role(role_id))
+        return timeout_roles
+    
     async def _determine_mentions(self, message: Message) -> Set[Member]:
         """
         This is an investigative workaround to find all mentions + replies in a message.
@@ -171,6 +178,8 @@ class Roll(Cog):
         is_self = target == message.author
         self.logger.debug(f"Message is targeting self: {is_self}")
 
+        timeout_roles = self._get_timeout_roles(message)
+
         # If target is protected, respond with a safe message and return immediately.
         if self._is_protected(target) or self._is_moderator(target) or self._is_admin(target):
             if is_self:
@@ -193,6 +202,9 @@ class Roll(Cog):
 
         await target.timeout(duration, reason=f"Timed out for {duration_label} via Roulette")
         self.logger.info(f"Timed {target.name} out for {duration_label}")
+
+        await target.add_roles(*timeout_roles, reason = f"Timed out for {duration_label} via Roulette")
+        self.logger.info(f"Applied timeout roles to {target.name}")
 
         if is_self:
             self.logger.info("Responding with affected message for self")

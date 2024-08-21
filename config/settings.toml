@@ -11,7 +11,11 @@ log_level = "INFO"
 bot_token = "<bot_token>"
 
 # Channels that should be observed.
-roulette_channels = ["<list_of_channel_ids"]
+roulette_channels = ["<list_of_channel_ids>"]
+
+# List of Discord Roles
+# These roles will be apllied to timed out users.
+roulette_timeout_roles = ["<list_of_role_ids>"]
 
 # List of Discord Roles
 # These roles will be immune to being timed out.
@@ -25,7 +29,7 @@ roulette_moderator_roles = ["<list_of_role_ids>"]
 # List of Discord User IDs
 # Reserved superuser role for future use.
 # Administrators are implicitly moderators.
-roulette_administrator_users = ["<list_of_role_ids>"]
+roulette_administrator_users = ["<list_of_user_ids>"]
 
 # List of Python regex patterns (as strings)
 # Messages that satisfy this pattern will trigger the roll
