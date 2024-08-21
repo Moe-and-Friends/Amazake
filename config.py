@@ -17,6 +17,7 @@ _settings = Dynaconf(
         Validator("bot_token", must_exist=True, is_type_of=str),
         # Roulette settings
         Validator("roulette_channels", must_exist=True, is_type_of=list, len_min=1),
+        Validator("roulette_timeout_roles", must_exist=True, is_type_of=list, len_min=1),
         Validator("roulette_protected_roles", is_type_of=list),
         Validator("roulette_moderator_roles", is_type_of=list),
         Validator("roulette_administrator_users", is_type_of=list),
@@ -53,6 +54,8 @@ def roulette_roll_match_patterns() -> List[str]:
 def roulette_channels() -> List[str]:
     return _settings.get("roulette_channels")
 
+def roulette_timeout_roles() -> List[str]:
+    return _settings.get("roulette_timeout_roles")
 
 def roulette_protected_roles() -> Optional[List[str]]:
     return _settings.get("roulette_protected_roles")
