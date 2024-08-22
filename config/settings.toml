@@ -10,6 +10,13 @@ log_level = "INFO"
 # Note: Consider providing this via environment variable instead.
 bot_token = "<bot_token>"
 
+# Address of the Redis server.
+redis_host = "<host_name>"
+
+# Port number of the Redis server.
+# 6379 is default port.
+redis_port = 6379
+
 # Channels that should be observed.
 roulette_channels = ["<list_of_channel_ids>"]
 

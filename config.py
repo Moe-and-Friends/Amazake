@@ -15,6 +15,9 @@ _settings = Dynaconf(
         # Bot settings
         Validator("log_level", is_type_of=str),
         Validator("bot_token", must_exist=True, is_type_of=str),
+        # Redis settings
+        Validator("redis_host", must_exist=True, is_type_of=str),
+        Validator("redis_port", must_exist=True, is_type_of=int),
         # Roulette settings
         Validator("roulette_channels", must_exist=True, is_type_of=list, len_min=1),
         Validator("roulette_timeout_roles", must_exist=True, is_type_of=list, len_min=1),
@@ -46,6 +49,17 @@ def bot_token() -> str:
     """
     return _settings.get("bot_token")
 
+def redis_host() -> str:
+    """
+    :return: The redis host, as a string.
+    """
+    return _settings.get("redis_host")
+
+def redis_port() -> str:
+    """
+    :return: The redis port, as an integer.
+    """
+    return _settings.get("redis_port")
 
 def roulette_roll_match_patterns() -> List[str]:
     return _settings.get("roulette_roll_match_patterns")

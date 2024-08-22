@@ -3,9 +3,10 @@ import random
 
 from . import action, debounce, stats
 from ..config import config
+from ..config.redis_config import redis_client
 
 from asyncio import sleep
-from datetime import timedelta
+from datetime import timedelta, datetime
 from discord import Member, Message, User, Role
 from discord.ext.commands import Bot, Cog, guild_only
 from typing import Set
@@ -168,6 +169,19 @@ class Roll(Cog):
 
         self.logger.debug("Didn't find any mentions, returning message author as target.")
         return {message.author}
+    
+    async def _upload_timeout(self,
+                              duration: timedelta,
+                              message: Message,
+                              target: Member) -> int:
+        
+        key = "roulette_timeout_live_" + str(message.guild.id)
+
+        time_unmute = datetime.now() + duration
+        posix_time_unmute = int(time_unmute.timestamp())
+        
+        resp = redis_client.zadd(key, {target.id: posix_time_unmute})
+        return resp
 
     async def _timeout(self,
                        duration: timedelta,
@@ -194,17 +208,15 @@ class Roll(Cog):
                                                  duration_label=duration_label))
             return
 
-        # Non-native mutes aren't supported yet.
-        if duration > timedelta(days=28):
-            self.logger.warning(f"Received a mute for {duration_label}. This duration is currently unsupported.")
-            await message.reply("Sorry, something went wrong. Please roll again!")
-            return
-
-        await target.timeout(duration, reason=f"Timed out for {duration_label} via Roulette")
-        self.logger.info(f"Timed {target.name} out for {duration_label}")
+        if not duration > timedelta(days=28):
+            await target.timeout(duration, reason=f"Timed out for {duration_label} via Roulette")
 
         await target.add_roles(*timeout_roles, reason = f"Timed out for {duration_label} via Roulette")
         self.logger.info(f"Applied timeout roles to {target.name}")
+        self.logger.info(f"Timed {target.name} out for {duration_label}")
+
+        await self._upload_timeout(duration, message, target)
+        self.logger.debug(f"Record updated successfully")
 
         if is_self:
             self.logger.info("Responding with affected message for self")
