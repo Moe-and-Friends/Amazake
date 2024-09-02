@@ -19,6 +19,7 @@ _settings = Dynaconf(
         Validator("redis_host", must_exist=True, is_type_of=str),
         Validator("redis_port", must_exist=True, is_type_of=int),
         # Roulette settings
+        Validator("unmute_rate",  is_type_of=int),
         Validator("roulette_channels", must_exist=True, is_type_of=list, len_min=1),
         Validator("roulette_timeout_roles", must_exist=True, is_type_of=list, len_min=1),
         Validator("roulette_protected_roles", is_type_of=list),
@@ -49,17 +50,27 @@ def bot_token() -> str:
     """
     return _settings.get("bot_token")
 
+
 def redis_host() -> str:
     """
     :return: The redis host, as a string.
     """
     return _settings.get("redis_host")
 
+
 def redis_port() -> str:
     """
     :return: The redis port, as an integer.
     """
     return _settings.get("redis_port")
+
+
+def unmute_rate() -> int:
+    """
+    :return: Time in minutes between each unmute loop, as an integer.
+    """
+    return _settings.get("unmute_rate")
+
 
 def roulette_roll_match_patterns() -> List[str]:
     return _settings.get("roulette_roll_match_patterns")
@@ -68,8 +79,10 @@ def roulette_roll_match_patterns() -> List[str]:
 def roulette_channels() -> List[str]:
     return _settings.get("roulette_channels")
 
+
 def roulette_timeout_roles() -> List[str]:
     return _settings.get("roulette_timeout_roles")
+
 
 def roulette_protected_roles() -> Optional[List[str]]:
     return _settings.get("roulette_protected_roles")

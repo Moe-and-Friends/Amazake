@@ -17,6 +17,10 @@ redis_host = "<host_name>"
 # 6379 is default port.
 redis_port = 6379
 
+# Time in minutes between each unmute loop.
+# Default 1
+unmute_rate = 1
+
 # Channels that should be observed.
 roulette_channels = ["<list_of_channel_ids>"]
 

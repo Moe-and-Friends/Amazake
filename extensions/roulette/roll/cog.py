@@ -7,7 +7,7 @@ from ..config.redis_config import redis_client
 
 from asyncio import sleep
 from datetime import timedelta, datetime
-from discord import Member, Message, User, Role
+from discord import Member, Message, User
 from discord.ext.commands import Bot, Cog, guild_only
 from typing import Set
 
@@ -100,13 +100,15 @@ class Roll(Cog):
         self.logger.debug(f"User {user.name}'s admin status: {is_admin}")
         return is_admin
 
-    def _get_timeout_roles(self, message: Message) -> Set[Role]:
-        role_ids = config.timeout_roles()
-        timeout_roles = set()
-        for role_id in role_ids:
-            timeout_roles.add(action.Role(role_id))
-        return timeout_roles
-    
+    async def _apply_timeout_roles(self, target, duration_label):
+        timeout_ids = config.timeout_roles()
+
+        for timeout_id in timeout_ids:
+            role = target.guild.get_role(int(timeout_id))
+
+            if role:
+                await target.add_roles(role, reason=f"Timed out for {duration_label} via Roulette")
+
     async def _determine_mentions(self, message: Message) -> Set[Member]:
         """
         This is an investigative workaround to find all mentions + replies in a message.
@@ -169,17 +171,18 @@ class Roll(Cog):
 
         self.logger.debug("Didn't find any mentions, returning message author as target.")
         return {message.author}
-    
+
+    # TODO: Check for successful update
     async def _upload_timeout(self,
                               duration: timedelta,
                               message: Message,
                               target: Member) -> int:
-        
+
         key = "roulette_timeout_live_" + str(message.guild.id)
 
         time_unmute = datetime.now() + duration
         posix_time_unmute = int(time_unmute.timestamp())
-        
+
         resp = redis_client.zadd(key, {target.id: posix_time_unmute})
         return resp
 
@@ -191,8 +194,6 @@ class Roll(Cog):
 
         is_self = target == message.author
         self.logger.debug(f"Message is targeting self: {is_self}")
-
-        timeout_roles = self._get_timeout_roles(message)
 
         # If target is protected, respond with a safe message and return immediately.
         if self._is_protected(target) or self._is_moderator(target) or self._is_admin(target):
@@ -211,7 +212,7 @@ class Roll(Cog):
         if not duration > timedelta(days=28):
             await target.timeout(duration, reason=f"Timed out for {duration_label} via Roulette")
 
-        await target.add_roles(*timeout_roles, reason = f"Timed out for {duration_label} via Roulette")
+        await self._apply_timeout_roles(target, duration_label)
         self.logger.info(f"Applied timeout roles to {target.name}")
         self.logger.info(f"Timed {target.name} out for {duration_label}")
 

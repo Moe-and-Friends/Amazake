@@ -46,12 +46,21 @@ def administrator() -> Tuple[str]:
     users = root_config.roulette_administrator_users()
     return tuple(str(u) for u in users) if users else tuple()
 
+
+def unmute_rate() -> int:
+    """
+    :return: Time in minutes between each unmute loop, as an integer.
+    """
+    return root_config.unmute_rate() or 1
+
+
 def timeout_roles() -> Tuple[str]:
     """
     Roles that are applied to users at time out.
     :return: A list of role IDs.
     """
     return tuple(str(r) for r in root_config.roulette_timeout_roles())
+
 
 def roll_match_patterns() -> Tuple[re.Pattern[str]]:
     """
