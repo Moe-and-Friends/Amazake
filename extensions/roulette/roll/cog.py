@@ -3,6 +3,7 @@ import random
 
 from . import action, debounce, stats
 from ..config import config
+from ..database.redis_db import add_timeout
 
 from asyncio import sleep
 from datetime import timedelta
@@ -99,6 +100,15 @@ class Roll(Cog):
         self.logger.debug(f"User {user.name}'s admin status: {is_admin}")
         return is_admin
 
+    async def _apply_timeout_roles(self, target, duration_label):
+        timeout_ids = config.timeout_roles()
+
+        for timeout_id in timeout_ids:
+            role = target.guild.get_role(int(timeout_id))
+
+            if role:
+                await target.add_roles(role, reason=f"Adding role for {duration_label} timeout")
+
     async def _determine_mentions(self, message: Message) -> Set[Member]:
         """
         This is an investigative workaround to find all mentions + replies in a message.
@@ -185,14 +195,14 @@ class Roll(Cog):
                                                  duration_label=duration_label))
             return
 
-        # Non-native mutes aren't supported yet.
-        if duration > timedelta(days=28):
-            self.logger.warning(f"Received a mute for {duration_label}. This duration is currently unsupported.")
-            await message.reply("Sorry, something went wrong. Please roll again!")
-            return
+        if not duration > timedelta(days=28):
+            await target.timeout(duration, reason=f"Timed out for {duration_label} via Roulette")
 
-        await target.timeout(duration, reason=f"Timed out for {duration_label} via Roulette")
-        self.logger.info(f"Timed {target.name} out for {duration_label}")
+        await self._apply_timeout_roles(target, duration_label)
+        self.logger.info(f"Applied timeout roles to {target.name}")
+
+        await add_timeout(target, duration_label, duration, message)
+        self.logger.info(f"{target.name} has been muted for {duration_label}")
 
         if is_self:
             self.logger.info("Responding with affected message for self")
@@ -205,4 +215,4 @@ class Roll(Cog):
             await message.reply(reply.format(user_name=target.display_name,
                                              duration_label=duration_label))
 
-        stats.timeout_record_stats(duration, message)
+#        stats.timeout_record_stats(duration, message)

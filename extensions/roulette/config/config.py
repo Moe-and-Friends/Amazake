@@ -47,6 +47,28 @@ def administrator() -> Tuple[str]:
     return tuple(str(u) for u in users) if users else tuple()
 
 
+def unmute_rate() -> int:
+    """
+    :return: Time in minutes between each unmute loop, as an integer.
+    """
+    return root_config.roulette_unmute_rate() or 1
+
+
+def timeout_roles() -> Tuple[str]:
+    """
+    Roles that are applied to users at time out.
+    :return: A list of role IDs.
+    """
+    return tuple(str(r) for r in root_config.roulette_timeout_roles())
+
+
+def redis_key_const() -> str:
+    """
+    :return: Prefix to guild id stored in the database.
+    """
+    return root_config.redis_key_const() or "ROULETTE_TIMEOUT_LIVE_"
+
+
 def roll_match_patterns() -> Tuple[re.Pattern[str]]:
     """
     :return: A tuple of re.Pattern objects used to match messages for trigger hits.
