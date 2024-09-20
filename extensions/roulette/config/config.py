@@ -51,7 +51,7 @@ def unmute_rate() -> int:
     """
     :return: Time in minutes between each unmute loop, as an integer.
     """
-    return root_config.unmute_rate() or 1
+    return root_config.roulette_unmute_rate() or 1
 
 
 def timeout_roles() -> Tuple[str]:
@@ -60,6 +60,13 @@ def timeout_roles() -> Tuple[str]:
     :return: A list of role IDs.
     """
     return tuple(str(r) for r in root_config.roulette_timeout_roles())
+
+
+def redis_key_const() -> str:
+    """
+    :return: Prefix to guild id stored in the database.
+    """
+    return root_config.redis_key_const() or "ROULETTE_TIMEOUT_LIVE_"
 
 
 def roll_match_patterns() -> Tuple[re.Pattern[str]]:

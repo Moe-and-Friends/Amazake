@@ -16,9 +16,6 @@ _TIME_CONVERSION_INTERVALS = (
 
 logger = logging.getLogger("roulette.roll")
 
-class Role:
-    def __init__(self, id: int):
-        self.id = id
 
 class Timeout:
     def __init__(self, duration: int):

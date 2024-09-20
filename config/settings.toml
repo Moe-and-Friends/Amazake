@@ -10,6 +10,7 @@ log_level = "INFO"
 # Note: Consider providing this via environment variable instead.
 bot_token = "<bot_token>"
 
+# Note: Consider providing this via environment variable instead.
 # Address of the Redis server.
 redis_host = "<host_name>"
 
@@ -17,9 +18,21 @@ redis_host = "<host_name>"
 # 6379 is default port.
 redis_port = 6379
 
+# Username used to authenticate redis connection.
+# Note: Consider providing this via environment variable instead.
+redis_username = "<username>"
+
+# Password used to authenticate redis connection.
+# Note: Consider providing this via environment variable instead.
+redis_password = "<password>"
+
+# Prefix to guild id stored in the database.
+# Default is "ROULETTE_TIMEOUT_LIVE_"
+redis_key_const = "<key_constant>"
+
 # Time in minutes between each unmute loop.
 # Default 1
-unmute_rate = 1
+roulette_unmute_rate = 1
 
 # Channels that should be observed.
 roulette_channels = ["<list_of_channel_ids>"]
