@@ -1,21 +1,25 @@
 import logging
 
-from Redis.redis_config import get_redis
+from redis_interface.redis_config import get_redis
 from ..config import config
-from .action import fetch_timeout_roles
+from .action import get_timeout_roles
 
 from datetime import datetime, timedelta
 from discord import Member, Message
 from typing import Set
+from enum import Enum
 
 _redis_client = get_redis()
+
+class Status(Enum):
+    FAILURE = 0
+    SUCCESS = 1
 
 logger = logging.getLogger("roulette.database")
 
 
 # Mute functions
-# TODO: Check for successful update
-async def _upload_timeout(duration: timedelta,
+async def add_timeout(duration: timedelta,
                           message: Message,
                           target: Member) -> int:
 
@@ -24,7 +28,14 @@ async def _upload_timeout(duration: timedelta,
     time_unmute = datetime.now() + duration
     posix_time_unmute = int(time_unmute.timestamp())
 
-    resp = _redis_client.zadd(key, {target.id: posix_time_unmute})
+    resp = _redis_client.zadd(key, {target.id: posix_time_unmute}, ch=True)
+
+    if resp == 0:
+        return Status.FAILURE
+    else:
+        return Status.SUCCESS
+
+    logger.warn(f"Unexpected ZADD response. {resp} scores got updated")
     return resp
 
 
@@ -38,14 +49,11 @@ async def _apply_timeout_roles(target, duration_label):
             await target.add_roles(role, reason=f"Adding role for {duration_label} timeout")
 
 
-async def add_timeout(target, duration_label, duration, message):
-    await _upload_timeout(duration, message, target)
-
-
 # Unmute functions
 async def _get_guild_ids() -> Set[int]:
     cursor = 0
-    pattern = config.redis_key_const() + '*'
+    config_key = config.redis_key_const()
+    pattern = config_key + '*'
 
     guild_keys = set()
     guild_ids = set()
@@ -58,12 +66,14 @@ async def _get_guild_ids() -> Set[int]:
             break
 
     for key in guild_keys:
-        guild_ids.add(int(key[22:]))
+        key = key.decode('utf-8')
+        key = key.removeprefix(config_key)
+        guild_ids.add(int(key))
 
     return guild_ids
 
 
-async def _fetch_candidates(guild_id) -> Set[int]:
+async def _fetch_unmute_candidates(guild_id) -> Set[int]:
     key = f"{config.redis_key_const()}{guild_id}"
     data = _redis_client.zrange(key, start=0, end=-1, withscores=True)
 
@@ -75,18 +85,18 @@ async def _fetch_candidates(guild_id) -> Set[int]:
             result.add(int(user))
     return result
 
-
+# TODO: Fix. When there isn't a timeout detected, it won't show skipping cycle message.
 async def remove_timeout(timeout_ids, bot):
     guild_ids = await _get_guild_ids()
     for guild_id in guild_ids:
-        unmute_candidates = await _fetch_candidates(guild_id)
+        unmute_candidates = await _fetch_unmute_candidates(guild_id)
 
         if not unmute_candidates:
             logger.info("No records fetched. Skipping cycle.")
             return
 
         guild = bot.get_guild(guild_id)
-        timeout_roles = fetch_timeout_roles(guild)
+        timeout_roles = get_timeout_roles(guild)
 
         for candidate in unmute_candidates:
             member = await guild.fetch_member(candidate)

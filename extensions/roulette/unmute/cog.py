@@ -1,4 +1,5 @@
 import logging
+import sys
 
 from ..config import config
 from ..database.redis_db import remove_timeout
@@ -18,7 +19,11 @@ class Unmute(Cog):
     async def cog_command_error(self, ctx, error: Exception) -> None:
         self.logger.error(str(error))
 
-    @tasks.loop(minutes=1)
+    @tasks.loop(minutes=sys.maxsize)
     async def unmute_loop(self):
         timeout_ids = set(config.timeout_roles())
         await remove_timeout(timeout_ids, self.bot)
+
+    @unmute_loop.before_loop
+    async def before_unmute_loop(self):
+        await self.bot.wait_until_ready()
