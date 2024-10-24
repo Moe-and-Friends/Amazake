@@ -11,7 +11,6 @@ from discord import Member, Message, User
 from discord.ext.commands import Bot, Cog, guild_only
 from typing import Set
 
-
 class Roll(Cog):
     def __init__(self, bot: Bot):
         self.bot = bot
@@ -196,13 +195,16 @@ class Roll(Cog):
             return
 
         if not duration > timedelta(days=28):
-            await target.timeout(duration, reason=f"Timed out for {duration_label} via Roulette")
+            await target.timeout(duration, reason=f"Native time out for {duration_label} via Roulette")
 
         await self._apply_timeout_roles(target, duration_label)
         self.logger.info(f"Applied timeout roles to {target.name}")
 
-        await add_timeout(target, duration_label, duration, message)
-        self.logger.info(f"{target.name} has been muted for {duration_label}")
+        resp = await add_timeout(duration, message, target)
+        if resp.value == 1:
+            self.logger.info(f"{target.name} has been muted for {duration_label}")
+        else:
+            self.logger.error(f"{target.name} couldn't be muted. {resp}")
 
         if is_self:
             self.logger.info("Responding with affected message for self")
@@ -215,4 +217,4 @@ class Roll(Cog):
             await message.reply(reply.format(user_name=target.display_name,
                                              duration_label=duration_label))
 
-#        stats.timeout_record_stats(duration, message)
+        #stats.timeout_record_stats(duration, message)

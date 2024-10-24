@@ -39,7 +39,8 @@ roulette_channels = ["<list_of_channel_ids>"]
 
 # List of Discord Roles
 # These roles will be apllied to timed out users.
-roulette_timeout_roles = ["<list_of_role_ids>"]
+# Keep empty when not in use to avoid iterating over non-ids.
+roulette_timeout_roles = []
 
 # List of Discord Roles
 # These roles will be immune to being timed out.

@@ -1,23 +1,17 @@
 from ..config import config
 from typing import Set
 
-
-class Role:
-    def __init__(self, id: int):
-        self.id = id
+from discord import Object
 
 
-def _get_timeout_roles(guild) -> Set[Role]:
-    role_ids_conf = config.timeout_roles()
-    role_ids = set()
+def get_timeout_roles(guild) -> Set[Object]:
+    role_ids = config.timeout_roles()
+    timeout_roles = set()
 
-    for role_id_conf in role_ids_conf:
-        role = guild.get_role(int(role_id_conf))
+    # TODO: Check if call to fetch_roles is needed.
+    for role_id in role_ids:
+        role = guild.get_role(int(role_id))
         if role:
-            role_ids.add(role_id_conf)
+            timeout_roles.add(role_id)
 
-    return {Role(role_id) for role_id in role_ids}
-
-
-def fetch_timeout_roles(guild) -> Set[Role]:
-    return _get_timeout_roles(guild)
+    return {Object(id=timeout_role) for timeout_role in timeout_roles}
