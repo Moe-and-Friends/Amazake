@@ -217,4 +217,4 @@ class Roll(Cog):
             await message.reply(reply.format(user_name=target.display_name,
                                              duration_label=duration_label))
 
-        #stats.timeout_record_stats(duration, message)
+        stats.timeout_record_stats(duration, message)
