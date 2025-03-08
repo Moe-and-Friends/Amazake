@@ -1,8 +1,8 @@
 import logging
 
 from database.redis_client import get_redis
+from discord import Member
 from ..config import config
-from .action import get_timeout_roles
 
 from datetime import datetime, timedelta
 from discord import Message, User
@@ -10,49 +10,31 @@ from typing import Set
 
 _redis_client = get_redis()
 
-logger = logging.getLogger("roulette.database")
+logger = logging.getLogger("roulette.database.redis")
 
 
 # Mute functions
 async def add_timeout(duration: timedelta,
-                      message: Message,
-                      user: User) -> bool:
-    key = str(message.guild.id)
-    unmute_time = int(datetime.now() + duration)
+                      member: Member):
+    """
+    Record a timeout into Redis (for future processing).
+    :param duration: The duration of the timeout that will be applied.
+    :param member: The member to time out.
+    """
+
+    # Calculate the time the user will be *unmuted* at.
+    unmute_time = datetime.now() + duration
 
     # Use Redis' ZADD to store users' mute types in a ranked fashion.
     # The unmute time (in unixtime) represents the score.
     # See: https://redis.io/docs/latest/commands/zadd/
-    resp = _redis_client.zadd(name=key, mapping={user.id: unmute_time}, ch=True)
+    resp = _redis_client.zadd(name=config.guild(), mapping={member.id: unmute_time.timestamp()}, ch=True)
 
-    # If no scores were added, the timeout wasn't added for some reason.
-    if resp == 0:
-        return False
+    if resp != 1:
+        return RuntimeError(f"Redis reported {resp} scores were updated for user {member.id} ({member.name})")
 
-    logger.warning(f"{resp} scores got updated")
+    logger.info(f"Recorded timeout for user {member.id} ({member.name}) expiring at {unmute_time.strftime('%c')}")
     return True
-
-
-# Unmute functions
-async def _get_guild_ids() -> Set[int]:
-    cursor = 0
-
-    guild_keys = set()
-    guild_ids = set()
-
-    while True:
-        cursor, partial_keys = _redis_client.scan(cursor=cursor, match='*')
-        guild_keys.update(partial_keys)
-
-        if cursor == 0:
-            break
-
-    for key in guild_keys:
-        key = key.decode('utf-8')
-        key = key.removeprefix(config_key)
-        guild_ids.add(int(key))
-
-    return guild_ids
 
 
 async def _fetch_unmute_candidates(guild_id) -> Set[int]:

@@ -3,7 +3,7 @@ import random
 
 from . import action, debounce, stats
 from ..config import config
-from ..database.redis_db import add_timeout
+from ..database import redis_db
 
 from asyncio import sleep
 from datetime import timedelta
@@ -197,6 +197,13 @@ class Roll(Cog):
             return
 
         await target.timeout(duration, reason=f"Timed out for {duration_label} via Roulette")
+
+        # TODO: Update this logic block after testing.
+        # This section represents testing the Redis flow.
+
+        # TODO: Handle timeout role application failures. (This is rare.)
+        if await self._apply_timeout_roles(target, duration_label):
+            await redis_db.add_timeout(duration, target)
         self.logger.info(f"Timed {target.name} out for {duration_label}")
 
         if is_self:
@@ -234,6 +241,7 @@ class Roll(Cog):
         try:
             await target.add_roles(role,
                                    reason=f"Applying role as part of Mutebot Timeout of duration {duration_label}")
+            self.logger.info(f"Applied timeout role to user {target.name}")
         except Forbidden:
             raise RuntimeError(f"Bot doesn't have sufficient permissions to apply role {timeout_role}.")
         except HTTPException:

@@ -10,6 +10,13 @@ import re
 from typing import Dict, Optional, Tuple
 
 
+def guild() -> str:
+    """
+    :return: The Discord Guild this bot is operating on.
+    """
+    return root_config.roulette_guild()
+
+
 def channels() -> Tuple[str]:
     """
     :return:  A list of channel IDs (as strings) representing channels that should be observed.
