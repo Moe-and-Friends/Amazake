@@ -4,7 +4,7 @@ from database.redis_client import get_redis
 from discord import Member
 from ..config import config
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from discord import Message, User
 from typing import Set
 
@@ -23,7 +23,9 @@ async def add_timeout(duration: timedelta,
     """
 
     # Calculate the time the user will be *unmuted* at.
-    unmute_time = datetime.now() + duration
+    # Because Mutebot instances can be deployed across a variety of timezones, prefer to always use a timezone-aware
+    # datetime object in UTC. (Don't use datetime.utcnow()).
+    unmute_time = datetime.now(timezone.utc) + duration
 
     # Use Redis' ZADD to store users' mute types in a ranked fashion.
     # The unmute time (in unixtime) represents the score.
