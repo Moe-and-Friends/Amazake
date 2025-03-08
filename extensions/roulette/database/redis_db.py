@@ -1,65 +1,47 @@
 import logging
 
-from redis_interface.redis_config import get_redis
+from database.redis_client import get_redis
 from ..config import config
 from .action import get_timeout_roles
 
 from datetime import datetime, timedelta
-from discord import Member, Message
+from discord import Message, User
 from typing import Set
-from enum import Enum
 
 _redis_client = get_redis()
-
-class Status(Enum):
-    FAILURE = 0
-    SUCCESS = 1
 
 logger = logging.getLogger("roulette.database")
 
 
 # Mute functions
 async def add_timeout(duration: timedelta,
-                          message: Message,
-                          target: Member) -> int:
+                      message: Message,
+                      user: User) -> bool:
+    key = str(message.guild.id)
+    unmute_time = int(datetime.now() + duration)
 
-    key = config.redis_key_const() + str(message.guild.id)
+    # Use Redis' ZADD to store users' mute types in a ranked fashion.
+    # The unmute time (in unixtime) represents the score.
+    # See: https://redis.io/docs/latest/commands/zadd/
+    resp = _redis_client.zadd(name=key, mapping={user.id: unmute_time}, ch=True)
 
-    time_unmute = datetime.now() + duration
-    posix_time_unmute = int(time_unmute.timestamp())
-
-    resp = _redis_client.zadd(key, {target.id: posix_time_unmute}, ch=True)
-
+    # If no scores were added, the timeout wasn't added for some reason.
     if resp == 0:
-        return Status.FAILURE
-    else:
-        return Status.SUCCESS
+        return False
 
-    logger.warn(f"Unexpected ZADD response. {resp} scores got updated")
-    return resp
-
-
-async def _apply_timeout_roles(target, duration_label):
-    timeout_ids = config.timeout_roles()
-
-    for timeout_id in timeout_ids:
-        role = target.guild.get_role(int(timeout_id))
-
-        if role:
-            await target.add_roles(role, reason=f"Adding role for {duration_label} timeout")
+    logger.warning(f"{resp} scores got updated")
+    return True
 
 
 # Unmute functions
 async def _get_guild_ids() -> Set[int]:
     cursor = 0
-    config_key = config.redis_key_const()
-    pattern = config_key + '*'
 
     guild_keys = set()
     guild_ids = set()
 
     while True:
-        cursor, partial_keys = _redis_client.scan(cursor=cursor, match=pattern)
+        cursor, partial_keys = _redis_client.scan(cursor=cursor, match='*')
         guild_keys.update(partial_keys)
 
         if cursor == 0:
@@ -74,7 +56,7 @@ async def _get_guild_ids() -> Set[int]:
 
 
 async def _fetch_unmute_candidates(guild_id) -> Set[int]:
-    key = f"{config.redis_key_const()}{guild_id}"
+    key = f"{guild_id}"
     data = _redis_client.zrange(key, start=0, end=-1, withscores=True)
 
     posix_time_now = int(datetime.now().timestamp())
@@ -84,6 +66,7 @@ async def _fetch_unmute_candidates(guild_id) -> Set[int]:
         if time <= posix_time_now:
             result.add(int(user))
     return result
+
 
 # TODO: Fix. When there isn't a timeout detected, it won't show skipping cycle message.
 async def remove_timeout(timeout_ids, bot):
@@ -102,4 +85,4 @@ async def remove_timeout(timeout_ids, bot):
             member = await guild.fetch_member(candidate)
             if not timeout_ids.isdisjoint(set([str(role.id) for role in member.roles])):
                 logger.info(f"Removed timeout for {member}")
-                await member.remove_roles(*timeout_roles, reason="Timeout expired")
+                await member.remove_roles(timeout_roles, reason="Timeout expired")

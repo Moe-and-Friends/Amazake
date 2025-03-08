@@ -7,9 +7,10 @@ from ..database.redis_db import add_timeout
 
 from asyncio import sleep
 from datetime import timedelta
-from discord import Member, Message, User
+from discord import Forbidden, HTTPException, Member, Message, User
 from discord.ext.commands import Bot, Cog, guild_only
 from typing import Set
+
 
 class Roll(Cog):
     def __init__(self, bot: Bot):
@@ -99,15 +100,6 @@ class Roll(Cog):
         self.logger.debug(f"User {user.name}'s admin status: {is_admin}")
         return is_admin
 
-    async def _apply_timeout_roles(self, target, duration_label):
-        timeout_ids = config.timeout_roles()
-
-        for timeout_id in timeout_ids:
-            role = target.guild.get_role(int(timeout_id))
-
-            if role:
-                await target.add_roles(role, reason=f"Adding role for {duration_label} timeout")
-
     async def _determine_mentions(self, message: Message) -> Set[Member]:
         """
         This is an investigative workaround to find all mentions + replies in a message.
@@ -135,14 +127,16 @@ class Roll(Cog):
         if reference_message:
             self.logger.debug(f"Fetched reference message {reference_message.id} from the Discord API")
         else:
-            self.logger.warning(f"Unable to resolve reference message {reference_message.id} from the Discord API. Assuming no mentions...")
+            self.logger.warning(
+                f"Unable to resolve reference message {reference_message.id} from the Discord API. Assuming no mentions...")
             return set()
 
         reference_message_author = await message.guild.fetch_member(reference_message.author.id)
         if reference_message_author:
             self.logger.debug(f"Fetched reference message author {reference_message_author.name}")
         else:
-            self.logger.warning(f"Unable to fetch reference message author from the Discord API. Assuming no mentions...")
+            self.logger.warning(
+                f"Unable to fetch reference message author from the Discord API. Assuming no mentions...")
             return set()
 
         # Note: It's okay to return mentions of the bot itself.
@@ -163,7 +157,8 @@ class Roll(Cog):
             return {message.author}
 
         # Ignore mentions of the bot user itself.
-        mentions = set([mention for mention in await self._determine_mentions(message) if mention.id != self.bot.user.id])
+        mentions = set(
+            [mention for mention in await self._determine_mentions(message) if mention.id != self.bot.user.id])
         if len(mentions) > 0:
             self.logger.debug("User is a moderator or administrator, targeting mentioned users instead.")
             return mentions
@@ -194,17 +189,15 @@ class Roll(Cog):
                                                  duration_label=duration_label))
             return
 
-        if not duration > timedelta(days=28):
-            await target.timeout(duration, reason=f"Native time out for {duration_label} via Roulette")
+        # Non-native mutes aren't supported yet.
+        # TODO: Re-enable Redis based roll mutes. The current implementation is broken.
+        if duration > timedelta(days=28):
+            self.logger.warning(f"Received a mute for {duration_label}. This duration is currently unsupported.")
+            await message.reply("Sorry, something went wrong. Please roll again!")
+            return
 
-        await self._apply_timeout_roles(target, duration_label)
-        self.logger.info(f"Applied timeout roles to {target.name}")
-
-        resp = await add_timeout(duration, message, target)
-        if resp.value == 1:
-            self.logger.info(f"{target.name} has been muted for {duration_label}")
-        else:
-            self.logger.error(f"{target.name} couldn't be muted. {resp}")
+        await target.timeout(duration, reason=f"Timed out for {duration_label} via Roulette")
+        self.logger.info(f"Timed {target.name} out for {duration_label}")
 
         if is_self:
             self.logger.info("Responding with affected message for self")
@@ -218,3 +211,32 @@ class Roll(Cog):
                                              duration_label=duration_label))
 
         stats.timeout_record_stats(duration, message)
+
+    async def _apply_timeout_roles(self, target: Member, duration_label: str) -> bool:
+        """
+        Applies the specified timeout roll onto a user.
+        :return: Whether the role was applied.
+        """
+        timeout_role = config.timeout_role()
+        if not timeout_role:
+            return False
+
+        role = target.guild.get_role(int(timeout_role))
+        # If the role isn't in the cache, attempt to fetch it from the API
+        if not role:
+            self.logger.debug(f"Didn't find role {timeout_role}, requesting from API...")
+            role = await target.guild.fetch_role(int(timeout_role))
+
+        # If the role still wasn't found, it likely doesn't exist.
+        if not role:
+            raise RuntimeError(f"Role {timeout_role} doesn't seem to exist. Please check your config.")
+
+        try:
+            await target.add_roles(role,
+                                   reason=f"Applying role as part of Mutebot Timeout of duration {duration_label}")
+        except Forbidden:
+            raise RuntimeError(f"Bot doesn't have sufficient permissions to apply role {timeout_role}.")
+        except HTTPException:
+            self.logger.critical(f"Adding role {timeout_role} failed for no apparent reason. Please investigate!")
+            return False
+        return True

@@ -20,11 +20,10 @@ _settings = Dynaconf(
         Validator("redis_port", must_exist=True, is_type_of=int),
         Validator("redis_username", is_type_of=str),
         Validator("redis_password", is_type_of=str),
-        Validator("redis_key_const", is_type_of=str),
         # Roulette settings
-        Validator("roulette_unmute_rate",  is_type_of=int),
+        Validator("roulette_guild", must_exist=True, is_type_of=str),
         Validator("roulette_channels", must_exist=True, is_type_of=list, len_min=1),
-        Validator("roulette_timeout_roles", is_type_of=list),
+        Validator("roulette_timeout_role", must_exist=True, is_type_of=str),
         Validator("roulette_protected_roles", is_type_of=list),
         Validator("roulette_moderator_roles", is_type_of=list),
         Validator("roulette_administrator_users", is_type_of=list),
@@ -35,7 +34,8 @@ _settings = Dynaconf(
         Validator("roulette_roll_timeout_protected_messages_other", must_exist=True, is_type_of=list, len_min=1),
         Validator("roulette_roll_timeout_leaderboard_webhook_urls", is_type_of=list),
         Validator("roulette_roll_timeout_response_delay_seconds", is_type_of=int),
-        Validator("roulette_roll_timeout_intervals", must_exist=True, is_type_of=list)
+        Validator("roulette_roll_timeout_intervals", must_exist=True, is_type_of=list),
+        Validator("roulette_unmute_rate", is_type_of=int),
     ]
 )
 
@@ -56,28 +56,28 @@ def bot_token() -> str:
 
 def redis_host() -> str:
     """
-    :return: The redis host, as a string.
+    :return: The Redis host, as a string.
     """
     return _settings.get("redis_host")
 
 
 def redis_port() -> str:
     """
-    :return: The redis port, as an integer.
+    :return: The Redis port, as an integer.
     """
     return _settings.get("redis_port")
 
 
 def redis_username() -> Optional[str]:
     """
-    :return: Username used for redis connection, as a string.
+    :return: Username used for the Redis connection, as a string.
     """
     return _settings.get("redis_username") or None
 
 
 def redis_password() -> Optional[str]:
     """
-    :return: Password used for redis connection, as a string.
+    :return: Password used for the Redis connection, as a string.
     """
     return _settings.get("redis_password") or None
 
@@ -86,20 +86,20 @@ def redis_key_const() -> Optional[str]:
     return _settings.get("redis_key_const") or None
 
 
-def roulette_unmute_rate() -> Optional[int]:
-    return _settings.get("roulette_unmute_rate") or None
-
-
 def roulette_roll_match_patterns() -> List[str]:
     return _settings.get("roulette_roll_match_patterns")
+
+
+def roulette_guild() -> str:
+    return _settings.get("roulette_guild")
 
 
 def roulette_channels() -> List[str]:
     return _settings.get("roulette_channels")
 
 
-def roulette_timeout_roles() -> Optional[List[str]]:
-    return _settings.get("roulette_timeout_roles")
+def roulette_timeout_role() -> Optional[str]:
+    return _settings.get("roulette_timeout_role")
 
 
 def roulette_protected_roles() -> Optional[List[str]]:
@@ -140,6 +140,10 @@ def roulette_roll_timeout_response_delay_seconds() -> Optional[int]:
 
 def roulette_roll_timeout_intervals() -> List[Dict]:
     return _settings.get("roulette_roll_timeout_intervals")
+
+
+def roulette_unmute_rate() -> Optional[int]:
+    return _settings.get("roulette_unmute_rate") or None
 
 # `envvar_prefix` = export envvars with `export ROULETTE_FOO=bar`.
 # `settings_files` = Load these files in the order.

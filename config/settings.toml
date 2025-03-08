@@ -1,4 +1,3 @@
-
 [default]
 
 # Logger output level.
@@ -10,37 +9,35 @@ log_level = "INFO"
 # Note: Consider providing this via environment variable instead.
 bot_token = "<bot_token>"
 
-# Note: Consider providing this via environment variable instead.
 # Address of the Redis server.
+# Note: Consider providing this via environment variable instead.
+# IMPORTANT: The Redis server should be ideally exclusive to a single-running instance of Amazake.
 redis_host = "<host_name>"
 
 # Port number of the Redis server.
 # 6379 is default port.
 redis_port = 6379
 
-# Username used to authenticate redis connection.
+# Username used to authenticate database connection.
 # Note: Consider providing this via environment variable instead.
 redis_username = "<username>"
 
-# Password used to authenticate redis connection.
+# Password used to authenticate database connection.
 # Note: Consider providing this via environment variable instead.
 redis_password = "<password>"
-
-# Prefix to guild id stored in the database.
-# Default is "ROULETTE_TIMEOUT_LIVE_"
-redis_key_const = "<key_constant>"
 
 # Time in minutes between each unmute loop.
 # Default 1
 roulette_unmute_rate = 1
 
+# The Guild this bot is running on.
+roulette_guild = "<guild_id>"
+
 # Channels that should be observed.
 roulette_channels = ["<list_of_channel_ids>"]
 
-# List of Discord Roles
-# These roles will be apllied to timed out users.
-# Keep empty when not in use to avoid iterating over non-ids.
-roulette_timeout_roles = []
+# A Discord role that will be applied to users that should be timed out.
+roulette_timeout_role = "<role_id>"
 
 # List of Discord Roles
 # These roles will be immune to being timed out.
@@ -100,5 +97,5 @@ roulette_roll_timeout_response_delay_seconds = 3
 # Supported suffixes: m, h, d, w
 # Repeat another [[<STAGING_ENV>.roulette_roll_intervals]] to add a new interval.
 [[default.roulette_roll_timeout_intervals]]
-bound = { "lower" = "1m", "upper" = "5m"}
+bound = { "lower" = "1m", "upper" = "5m" }
 weight = 100

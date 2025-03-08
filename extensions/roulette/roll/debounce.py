@@ -18,11 +18,12 @@ def should_debounce(user_id: int) -> bool:
     # Discard aged keys in the TTLCache
     _CACHE.expire()
 
-    # Check if user is already in the cache (should debounce), or not (add to cache, and return no debounce)
+    # If the user isn't in the cache, add them to it and indicate user should not be debounced.
     if user_id not in _CACHE.keys():
         now = datetime.now().strftime("%c")
         logger.debug(f"Adding {user_id} to debounce cache at {now} for 1 minute")
         _CACHE[user_id] = datetime.now()
         return False
+
     logger.debug(f"{user_id} not in debounce cache")
     return True

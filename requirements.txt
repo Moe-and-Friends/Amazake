@@ -1,5 +1,5 @@
 colorlog~=6.8.2
-discord.py~=2.4.0
+discord.py~=2.5.0
 dynaconf~=3.2.6
 redis~=5.0.8
 requests~=2.32.3

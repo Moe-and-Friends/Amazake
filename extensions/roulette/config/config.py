@@ -7,7 +7,7 @@ global-level config.
 import config as root_config
 import re
 
-from typing import Dict, Tuple
+from typing import Dict, Optional, Tuple
 
 
 def channels() -> Tuple[str]:
@@ -54,19 +54,12 @@ def unmute_rate() -> int:
     return root_config.roulette_unmute_rate() or 1
 
 
-def timeout_roles() -> Tuple[str]:
+def timeout_role() -> Optional[str]:
     """
-    Roles that are applied to users at time out.
-    :return: A list of role IDs.
+    A role that is applied to users to time them out.
+    :return: A role ID, as a string.
     """
-    return tuple(str(r) for r in root_config.roulette_timeout_roles())
-
-
-def redis_key_const() -> str:
-    """
-    :return: Prefix to guild id stored in the database.
-    """
-    return root_config.redis_key_const() or "ROULETTE_TIMEOUT_LIVE_"
+    return root_config.roulette_timeout_role() or None
 
 
 def roll_match_patterns() -> Tuple[re.Pattern[str]]:
