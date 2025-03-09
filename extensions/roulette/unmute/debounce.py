@@ -12,9 +12,8 @@ logger = logging.getLogger("roulette.unmute")
 
 def should_debounce() -> bool:
     """
-    Debounces incoming user events against a local TTL Cache.
-    :param user_id: Discord user ID (snowflake)
-    :return: True if the user should be debounced (i.e. do not process), False otherwise.
+    Debounces incoming unmute events against a local TTL Cache.
+    :return: True if the unmute should be debounced (i.e. do not process), False otherwise.
     """
     # Discard aged keys in the TTLCache
     _CACHE.expire()
