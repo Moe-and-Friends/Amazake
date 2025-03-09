@@ -8,8 +8,7 @@ RUN apk add git
 COPY requirements.txt /opt/requirements.txt
 RUN pip install -r /opt/requirements.txt && rm /opt/requirements.txt
 
-COPY *.py /amazake/
-COPY extensions /amazake/extensions
+COPY . /amazake/
 
 WORKDIR /amazake
 ENTRYPOINT ["python3", "main.py"]
