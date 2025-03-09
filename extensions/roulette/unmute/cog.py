@@ -39,6 +39,7 @@ class Unmute(Cog):
             self.logger.info(f"Now processing unmute candidates: {unmute_candidates}")
             for candidate in unmute_candidates:
                 await self._remove_timeout_role(candidate)
+                self.logger.info(f"Finished processing candidate: {candidate}")
         else:
             self.logger.debug("No unmute candidates for this loop.")
 
@@ -89,12 +90,19 @@ class Unmute(Cog):
 
         role = await get_timeout_role(guild)
         try:
-            await member.remove_roles(role)
-            self.logger.debug(f"Removed timeout role from user {user_id} ({member.name})")
-        except Forbidden:
-            raise RuntimeError(f"Bot does not have sufficient permissions to remove the timeout role.")
-        except HTTPException:
-            raise RuntimeError(f"Unknown exception occurred when removing the timeout role. Please check your env.")
+            # Note: If the role was already removed (e.g. by a moderator), this will simply not do anything.
+            if role in member.roles:
+                await member.remove_roles(role)
+                self.logger.debug(f"Removed timeout role from user {user_id} ({member.name})")
+            else:
+                self.logger.info(
+                    f"Member {member.id} ({member.name} doesn't have the timeout role. It may have already been removed.")
+        except Forbidden as e:
+            self.logger.critical(f"Bot does not have sufficient permissions to remove the timeout role.")
+            raise RuntimeError(e)
+        except HTTPException as e:
+            self.logger.critical(f"Unknown exception occurred when removing the timeout role. Please check your env.")
+            raise RuntimeError(e)
 
         resp = _redis_client.zrem(config.guild(), str(user_id))
         if resp != 1:

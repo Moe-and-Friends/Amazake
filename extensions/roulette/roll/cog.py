@@ -192,8 +192,6 @@ class Roll(Cog):
                                                  duration_label=duration_label))
             return
 
-        # Non-native mutes aren't supported yet.
-        # TODO: Re-enable Redis based roll mutes. The current implementation is broken.
         if duration > timedelta(days=28):
             self.logger.warning(f"Received a mute for {duration_label}. This duration is currently unsupported.")
             await message.reply("Sorry, something went wrong. Please roll again!")
@@ -201,10 +199,9 @@ class Roll(Cog):
 
         await target.timeout(duration, reason=f"Timed out for {duration_label} via Roulette")
 
-        # TODO: Update this logic block after testing.
-        # This section represents testing the Redis flow.
-
-        # TODO: Handle timeout role application failures. (This is rare.)
+        # TODO: Remove shadow logic.
+        # During deployment testing, apply the role silently to users. We assume the role doesn't actually do
+        # anything - we just want to verify with audit logs that this is actually working.
         if await self._apply_timeout_roles(target, duration_label):
             await self._record_timeout_in_redis(duration, target)
         self.logger.info(f"Timed {target.name} out for {duration_label}")
