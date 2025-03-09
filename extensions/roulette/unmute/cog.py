@@ -39,9 +39,13 @@ class Unmute(Cog):
         unmute_candidates = await self._fetch_unmute_candidates()
         if unmute_candidates:
             self.logger.info(f"Now processing unmute candidates: {unmute_candidates}")
-            for candidate in unmute_candidates:
-                await self._remove_timeout_role(candidate)
-                self.logger.info(f"Finished processing candidate: {candidate}")
+            try:
+                for candidate in unmute_candidates:
+                    await self._remove_timeout_role(candidate)
+                    self.logger.info(f"Finished processing candidate: {candidate}")
+            except RuntimeError as e:
+                # TODO: Specify a warning channel to send failures to.
+                self.logger.critical(e)
         else:
             self.logger.debug("No unmute candidates for this loop.")
 
