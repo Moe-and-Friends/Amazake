@@ -3,13 +3,16 @@ import random
 
 from . import action, debounce, stats
 from ..config import config
-from ..database import redis_db
+from ..roles.roles import get_timeout_role
 
 from asyncio import sleep
-from datetime import timedelta
+from database.redis_client import get_redis
+from datetime import datetime, timedelta, timezone
 from discord import Forbidden, HTTPException, Member, Message, User
 from discord.ext.commands import Bot, Cog, guild_only
 from typing import Set
+
+_redis_client = get_redis()
 
 
 class Roll(Cog):
@@ -19,7 +22,7 @@ class Roll(Cog):
         self.logger.info("Loaded Roll cog")
 
     async def cog_command_error(self, ctx, error: Exception) -> None:
-        self.logger.warning(str(error))
+        self.logger.warning(error)
 
     @Cog.listener()
     @guild_only()
@@ -203,7 +206,7 @@ class Roll(Cog):
 
         # TODO: Handle timeout role application failures. (This is rare.)
         if await self._apply_timeout_roles(target, duration_label):
-            await redis_db.add_timeout(duration, target)
+            await self._record_timeout_in_redis(duration, target)
         self.logger.info(f"Timed {target.name} out for {duration_label}")
 
         if is_self:
@@ -224,27 +227,42 @@ class Roll(Cog):
         Applies the specified timeout roll onto a user.
         :return: Whether the role was applied.
         """
-        timeout_role = config.timeout_role()
-        if not timeout_role:
-            return False
-
-        role = target.guild.get_role(int(timeout_role))
-        # If the role isn't in the cache, attempt to fetch it from the API
+        role = await get_timeout_role(target.guild)
         if not role:
-            self.logger.debug(f"Didn't find role {timeout_role}, requesting from API...")
-            role = await target.guild.fetch_role(int(timeout_role))
-
-        # If the role still wasn't found, it likely doesn't exist.
-        if not role:
-            raise RuntimeError(f"Role {timeout_role} doesn't seem to exist. Please check your config.")
+            raise RuntimeError(f"Timeout role doesn't seem to exist. Please check your config.")
 
         try:
             await target.add_roles(role,
                                    reason=f"Applying role as part of Mutebot Timeout of duration {duration_label}")
             self.logger.info(f"Applied timeout role to user {target.name}")
         except Forbidden:
-            raise RuntimeError(f"Bot doesn't have sufficient permissions to apply role {timeout_role}.")
+            raise RuntimeError(f"Bot doesn't have sufficient permissions to apply role {role.id} ({role.name}).")
         except HTTPException:
-            self.logger.critical(f"Adding role {timeout_role} failed for no apparent reason. Please investigate!")
+            self.logger.critical(
+                f"Adding role {role.id} ({role.name}) failed for no apparent reason. Please investigate!")
             return False
+        return True
+
+    async def _record_timeout_in_redis(self, duration: timedelta, member: Member):
+        """
+        Record a timeout into Redis (for future processing).
+        :param duration: The duration of the timeout that will be applied.
+        :param member: The member to time out.
+        """
+
+        # Calculate the time the user will be *unmuted* at.
+        # Because Mutebot instances can be deployed across a variety of timezones, prefer to always use a timezone-aware
+        # datetime object in UTC. (Don't use datetime.utcnow()).
+        unmute_time = datetime.now(timezone.utc) + duration
+
+        # Use Redis' ZADD to store users' mute types in a ranked fashion.
+        # The unmute time (in unixtime) represents the score.
+        # See: https://redis.io/docs/latest/commands/zadd/
+        resp = _redis_client.zadd(name=config.guild(), mapping={member.id: unmute_time.timestamp()}, ch=True)
+
+        if resp != 1:
+            return RuntimeError(f"Redis reported {resp} scores were updated for user {member.id} ({member.name})")
+
+        self.logger.info(
+            f"Recorded timeout for user {member.id} ({member.name}) expiring at {unmute_time.strftime('%c')}")
         return True
