@@ -1,5 +1,6 @@
 import logging
 
+from api_extensions import roles as roles_api
 from discord import Guild, Role
 from typing import Optional
 
@@ -17,14 +18,12 @@ async def get_timeout_role(guild: Guild) -> Optional[Role]:
     if not timeout_role:
         return None
 
-    role = guild.get_role(int(timeout_role))
-    # If the role isn't in the cache, attempt to fetch it from the API
-    if not role:
-        logger.debug(f"Didn't find role {timeout_role}, requesting from API...")
-        role = await guild.fetch_role(int(timeout_role))
-
-    # If the role still wasn't found, it likely doesn't exist.
-    if not role:
+    try:
+        role = await roles_api.get_role(timeout_role, guild)
+    except RuntimeError as e:
+        logger.critical(f"Unable to load timeout role {timeout_role}")
+        logger.critical(e)
         return None
 
+    logger.debug(f"Loaded timeout role {role.id} ({role.name})")
     return role
