@@ -198,13 +198,20 @@ class Roll(Cog):
             await message.reply("Sorry, something went wrong. Please roll again!")
             return
 
-        await target.timeout(duration, reason=f"Timed out for {duration_label} via Roulette")
-
         # TODO: Remove shadow logic.
         # During deployment testing, apply the role silently to users. We assume the role doesn't actually do
         # anything - we just want to verify with audit logs that this is actually working.
-        if await self._apply_timeout_roles(target, duration_label):
-            await self._record_timeout_in_redis(duration, target)
+        try:
+            if await self._apply_timeout_roles(target, duration_label):
+                await self._record_timeout_in_redis(duration, target)
+                self.logger.info(f"Applied timeout role to user {target.id} ({target.name})")
+        except RuntimeError as e:
+            self.logger.critical(e)
+            # TODO: Enable this logic after shadow testing.
+            # await message.reply("Sorry, something went wrong. Please contact an administrator!")
+            # return
+
+        await target.timeout(duration, reason=f"Timed out for {duration_label} via Roulette")
         self.logger.info(f"Timed {target.name} out for {duration_label}")
 
         if is_self:
