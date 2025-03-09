@@ -36,7 +36,7 @@ class Unmute(Cog):
 
         unmute_candidates = await self._fetch_unmute_candidates()
         if unmute_candidates:
-            self.logger.info(f"Unmute candidates: {unmute_candidates}")
+            self.logger.info(f"Now processing unmute candidates: {unmute_candidates}")
             for candidate in unmute_candidates:
                 await self._remove_timeout_role(candidate)
         else:
