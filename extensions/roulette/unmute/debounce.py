@@ -19,7 +19,7 @@ def should_debounce() -> bool:
     # Discard aged keys in the TTLCache
     _CACHE.expire()
     if _KEY not in _CACHE.keys():
-        logger.debug(f"Debouncing unmute events from for 1 second.")
+        logger.debug(f"Event detected, now debouncing unmute events for 1 second.")
         _CACHE[_KEY] = True
         return False
 

@@ -19,6 +19,6 @@ async def setup(bot: Bot) -> None:
     await bot.add_cog(Unmute(bot))
     logger.info("Loaded Unmute extension")
 
-    # logger.info("Loading Roll extension")
-    # await bot.add_cog(Roll(bot))
-    # logger.info("Loaded Roll extension")
+    logger.info("Loading Roll extension")
+    await bot.add_cog(Roll(bot))
+    logger.info("Loaded Roll extension")
