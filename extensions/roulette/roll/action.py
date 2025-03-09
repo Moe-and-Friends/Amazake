@@ -81,8 +81,6 @@ def _convert_interval_str_to_minutes(interval: str) -> int:
 
 
 def _convert_minutes_to_display_str(minutes: int, granularity=2) -> str:
-    # Edge case: This function doesn't properly handle 0 minutes
-    # TODO: Respect granularity.
     if minutes == 0:
         return "0 minutes"
     result = list()

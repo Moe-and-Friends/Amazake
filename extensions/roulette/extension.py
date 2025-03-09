@@ -14,6 +14,7 @@ async def setup(bot: Bot) -> None:
     :param bot: The Discord bot the application is acting as
     """
 
+    # TODO: Re-enable Redis-based mutes.
     logger.info("Loading Unmute extension")
     await bot.add_cog(Unmute(bot))
     logger.info("Loaded Unmute extension")

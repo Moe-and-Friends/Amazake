@@ -1,0 +1,10 @@
+.dockerignore
+.env
+.gitignore
+docker-compose.yml
+Dockerfile
+LICENSE
+
+# config/ should be set by the Compose script itself.
+config/
+virtualenv/
