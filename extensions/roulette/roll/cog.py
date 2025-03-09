@@ -5,6 +5,7 @@ from . import action, debounce, stats
 from ..config import config
 from ..roles.roles import get_timeout_role
 
+from api_extensions import members
 from asyncio import sleep
 from database.redis_client import get_redis
 from datetime import datetime, timedelta, timezone
@@ -134,7 +135,7 @@ class Roll(Cog):
                 f"Unable to resolve reference message {reference_message.id} from the Discord API. Assuming no mentions...")
             return set()
 
-        reference_message_author = await message.guild.fetch_member(reference_message.author.id)
+        reference_message_author = await members.get_member(reference_message.author.id, message.guild)
         if reference_message_author:
             self.logger.debug(f"Fetched reference message author {reference_message_author.name}")
         else:

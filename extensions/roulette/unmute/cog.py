@@ -6,6 +6,7 @@ from .debounce import should_debounce
 from ..config import config
 from ..roles.roles import get_timeout_role
 
+from api_extensions import guilds, members
 from database.redis_client import get_redis
 from datetime import datetime, timedelta, timezone
 from discord import Forbidden, HTTPException
@@ -29,6 +30,7 @@ class Unmute(Cog):
     @tasks.loop(minutes=config.unmute_rate())
     async def unmute_loop(self):
         # TODO: Investigate if the unmute function can be executed within a transaction or a lock.
+        # This is low-priority, since we assume each server only has one bot running for it.
         # discord.py can enqueue all loop events that failed, due to system sleep / etc.
         if should_debounce():
             self.logger.info("Skipping unmute loop due to debounce")
@@ -77,26 +79,25 @@ class Unmute(Cog):
         self.logger.debug(f"Enqueue unmute candidates: {candidates}")
         return candidates
 
-    async def _remove_timeout_role(self, user_id: int):
-        guild = self.bot.get_guild(int(config.guild()))
+    async def _remove_timeout_role(self, member_id: int):
+        guild = await guilds.get_guild(config.guild(), self.bot)
         if not guild:
-            self.logger.debug(f"Unable to get guild {config.guild()}, fetching via API")
-            guild = await self.bot.fetch_guild(int(config.guild()))
+            raise RuntimeError(f"Guild {config.guild()} was not loaded. Please check your environment.")
 
-        member = guild.get_member(user_id)
+        member = await members.get_member(member_id, guild)
         if not member:
-            self.logger.debug(f"Unable to get member {user_id}, fetching via API")
-            member = await guild.fetch_member(user_id)
+            self.logger.warning(f"Member {member_id} could not be found. Not removing timeout role.")
+            return
 
         role = await get_timeout_role(guild)
         try:
             # Note: If the role was already removed (e.g. by a moderator), this will simply not do anything.
             if role in member.roles:
                 await member.remove_roles(role)
-                self.logger.debug(f"Removed timeout role from user {user_id} ({member.name})")
+                self.logger.debug(f"Removed timeout role from user {member_id} ({member.name})")
             else:
                 self.logger.info(
-                    f"Member {member.id} ({member.name} doesn't have the timeout role. It may have already been removed.")
+                    f"Member {member.id} ({member.name}) doesn't have the timeout role. It may have already been removed.")
         except Forbidden as e:
             self.logger.critical(f"Bot does not have sufficient permissions to remove the timeout role.")
             raise RuntimeError(e)
@@ -104,7 +105,8 @@ class Unmute(Cog):
             self.logger.critical(f"Unknown exception occurred when removing the timeout role. Please check your env.")
             raise RuntimeError(e)
 
-        resp = _redis_client.zrem(config.guild(), str(user_id))
+        resp = _redis_client.zrem(config.guild(), str(member_id))
+        # Even if the role was already removed, Redis still should be updated.
         if resp != 1:
             raise RuntimeError(f"{resp} members were removed from Redis, when 1 was expected!")
 
