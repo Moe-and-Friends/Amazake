@@ -5,7 +5,6 @@ import logging
 from colorlog import ColoredFormatter
 from discord.ext.commands import Bot
 
-
 intents = discord.Intents.default()
 intents.message_content = True
 
@@ -39,6 +38,7 @@ bot = Bot(command_prefix="roll", intents=intents)
 async def on_ready():
     logger.info(f'Logged in as {bot.user}')
     await bot.load_extension("extensions.roulette.extension")
+
 
 if __name__ == '__main__':
     # Note: Discord.py configures its own logger [prior to the root logger] - keep this at INFO.

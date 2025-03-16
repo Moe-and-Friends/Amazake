@@ -4,6 +4,7 @@ import logging
 from .debounce import should_debounce
 
 from ..config import config
+from ..const import identifiers
 from ..roles.roles import get_timeout_role
 
 from api_extensions import guilds, members
@@ -20,7 +21,7 @@ _redis_client = get_redis()
 class Unmute(Cog):
     def __init__(self, bot: Bot):
         self.bot = bot
-        self.logger = logging.getLogger("roulette.unmute")
+        self.logger = logging.getLogger(__name__)
         self.unmute_loop.start()
         self.logger.info("Loaded Unmute cog")
 
@@ -60,8 +61,9 @@ class Unmute(Cog):
         # Data is referenced in UTC time.
         posix_time_now = datetime.now(timezone.utc)
 
+        key = f"{identifiers.PACKAGE_KEY}_{config.guild()}"
         zrange_end = posix_time_now + timedelta(minutes=1)
-        data = _redis_client.zrange(name=config.guild(),
+        data = _redis_client.zrange(name=key,
                                     start=0,
                                     # Must be an int, so cast up to avoid missing anyone.
                                     end=math.ceil(zrange_end.timestamp()),
@@ -109,7 +111,8 @@ class Unmute(Cog):
             self.logger.critical(f"Unknown exception occurred when removing the timeout role. Please check your env.")
             raise RuntimeError(e)
 
-        resp = _redis_client.zrem(config.guild(), str(member_id))
+        key = f"{identifiers.PACKAGE_KEY}_{config.guild()}"
+        resp = _redis_client.zrem(key, str(member_id))
         # Even if the role was already removed, Redis still should be updated.
         if resp != 1:
             raise RuntimeError(f"{resp} members were removed from Redis, when 1 was expected!")

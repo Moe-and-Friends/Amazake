@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 _CACHE = TTLCache(maxsize=1, ttl=timedelta(seconds=1), timer=datetime.now)
 _KEY = "unmute"
 
-logger = logging.getLogger("roulette.unmute")
+logger = logging.getLogger(__name__)
 
 
 def should_debounce() -> bool:

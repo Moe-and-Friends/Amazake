@@ -4,7 +4,7 @@ from discord.ext.commands import Bot
 from .roll.cog import Roll
 from .unmute.cog import Unmute
 
-logger = logging.getLogger("roulette")
+logger = logging.getLogger(__name__)
 
 
 async def setup(bot: Bot) -> None:

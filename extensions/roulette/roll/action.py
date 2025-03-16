@@ -14,7 +14,7 @@ _TIME_CONVERSION_INTERVALS = (
     ('minutes', _MINUTES_IN_MINUTES)
 )
 
-logger = logging.getLogger("roulette.roll")
+logger = logging.getLogger(__name__)
 
 
 class Timeout:

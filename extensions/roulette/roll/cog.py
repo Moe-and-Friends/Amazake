@@ -3,6 +3,7 @@ import random
 
 from . import action, debounce, stats
 from ..config import config
+from ..const import identifiers
 from ..roles.roles import get_timeout_role
 
 from api_extensions import members
@@ -19,7 +20,7 @@ _redis_client = get_redis()
 class Roll(Cog):
     def __init__(self, bot: Bot):
         self.bot = bot
-        self.logger = logging.getLogger("roulette.roll")
+        self.logger = logging.getLogger(__name__)
         self.logger.info("Loaded Roll cog")
 
     async def cog_command_error(self, ctx, error: Exception) -> None:
@@ -263,7 +264,8 @@ class Roll(Cog):
         # Use Redis' ZADD to store users' mute types in a ranked fashion.
         # The unmute time (in unixtime) represents the score.
         # See: https://redis.io/docs/latest/commands/zadd/
-        resp = _redis_client.zadd(name=config.guild(), mapping={member.id: unmute_time.timestamp()}, ch=True)
+        key = f"{identifiers.PACKAGE_KEY}_{config.guild()}"
+        resp = _redis_client.zadd(name=key, mapping={member.id: unmute_time.timestamp()}, ch=True)
 
         if resp != 1:
             return RuntimeError(f"Redis reported {resp} scores were updated for user {member.id} ({member.name})")

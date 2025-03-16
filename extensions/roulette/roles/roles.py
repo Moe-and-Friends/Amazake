@@ -6,7 +6,7 @@ from typing import Optional
 
 from ..config import config
 
-logger = logging.getLogger("roulette.roles")
+logger = logging.getLogger(__name__)
 
 
 async def get_timeout_role(guild: Guild) -> Optional[Role]:
