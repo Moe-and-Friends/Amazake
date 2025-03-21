@@ -1,5 +1,11 @@
+import os
+
 from dynaconf import Dynaconf, Validator
+from google.protobuf import text_format
+from settings import app_config_pb2
 from typing import Dict, List, Optional
+
+_ENV_VAR_PREFIX = "AMAZAKE"
 
 _settings = Dynaconf(
     envvar_prefix="ROULETTE",
@@ -12,14 +18,6 @@ _settings = Dynaconf(
         '.secrets.yml'
     ],
     validators=[
-        # Bot settings
-        Validator("log_level", is_type_of=str),
-        Validator("bot_token", must_exist=True, is_type_of=str),
-        # Redis settings
-        Validator("redis_host", must_exist=True, is_type_of=str),
-        Validator("redis_port", must_exist=True, is_type_of=int),
-        Validator("redis_username", is_type_of=str),
-        Validator("redis_password", is_type_of=str),
         # Roulette settings
         Validator("roulette_guild", must_exist=True, is_type_of=str),
         Validator("roulette_channels", must_exist=True, is_type_of=list, len_min=1),
@@ -39,47 +37,36 @@ _settings = Dynaconf(
     ]
 )
 
+with open("settings/app_config.textproto", "r") as f:
+    _settings_proto = text_format.Parse(f.read(), app_config_pb2.AppConfiguration())
+    print(_settings_proto)
+
 
 def log_level() -> str:
     """
     :return: The logging level that should be used for this application. Does not affect Discord.py logging.
     """
-    return str(_settings.get("log_level", "INFO")).upper()
+    if (env_log_level := os.getenv(f"{_ENV_VAR_PREFIX}_LOG_LEVEL")) is not None:
+        return env_log_level
+    if _settings_proto.HasField("log_level"):
+        return _settings.log_level
+    raise LookupError("No configuration was found for logging level!")
 
 
 def bot_token() -> str:
     """
     :return: The bot token, as a string.
     """
-    return _settings.get("bot_token")
+    if (env_token := os.getenv(f"{_ENV_VAR_PREFIX}_BOT_TOKEN")) is not None:
+        return env_token
+    if _settings_proto.HasField("bot_token"):
+        return _settings.bot_token
+    raise LookupError("No configuration was found for the bot token!")
 
 
-def redis_host() -> str:
-    """
-    :return: The Redis host, as a string.
-    """
-    return _settings.get("redis_host")
-
-
-def redis_port() -> str:
-    """
-    :return: The Redis port, as an integer.
-    """
-    return _settings.get("redis_port")
-
-
-def redis_username() -> Optional[str]:
-    """
-    :return: Username used for the Redis connection, as a string.
-    """
-    return _settings.get("redis_username") or None
-
-
-def redis_password() -> Optional[str]:
-    """
-    :return: Password used for the Redis connection, as a string.
-    """
-    return _settings.get("redis_password") or None
+def redis_configuration() -> app_config_pb2.AppConfiguration.RedisConfiguration:
+    # Okay to return the default value.
+    return _settings_proto.redis_configuration
 
 
 def redis_key_const() -> Optional[str]:

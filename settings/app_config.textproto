@@ -1,0 +1,42 @@
+# proto-file: settings/app_config.proto
+# proto-message: AppConfiguration
+
+log_level: "DEBUG"
+
+roulette_configuration: {
+  guild: 546420743710310433 # Moe and Friends
+
+  channels: [
+    1078358866770792489 # Mutebot
+  ]
+
+  administrators: [
+    146619230760992768 # elvengarde
+  ]
+
+  moderator_roles: [
+    644057450743595010 # Sheriff
+  ]
+
+  protected_roles: [
+    1157317681159098448 # Rakka
+  ]
+
+  patterns: [
+    "(<:nut:806018835919536128>)+" # Matches :nut: emoji
+  ]
+
+  rolls: [
+    # Roll 1
+    {
+      weight: 5,
+      action: {
+        timeout: {
+          upper_bound: 10,
+          lower_bound: 1,
+        }
+      }
+    }
+  ]
+
+}

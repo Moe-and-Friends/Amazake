@@ -1,0 +1,118 @@
+syntax = "proto3";
+
+import "google/protobuf/any.proto";
+
+package ext.roulette.config;
+
+message RouletteConfiguration {
+
+  // The Guild this bot will be operating on.
+  // Required.
+  uint64 guild = 1;
+
+  // Channels in the Guild to observe (for regular users).
+  // Required.
+  repeated uint64 channels = 2;
+
+  // Users considered Administrator-level users.
+  // Required.
+  repeated uint64 administrators = 3;
+
+  // Roles considered Moderator-level roles.
+  // Required.
+  repeated uint64 moderator_roles = 4;
+
+  // Roles that are protected from any modification action from the Roulette.
+  // Required.
+  repeated uint64 protected_roles = 5;
+
+  // A list of regex patterns (Python) that will trigger the Roulette.
+  // Required.
+  repeated string patterns = 6;
+
+  // Responses that the bot may use when a user is rolled an action.
+  // Supported inline tags:
+  // {user_name}: The display name of the user (will not be tagged)
+  // {duration_label}: A display of the duration applicable to this action.
+  message Responses {
+    // When the user rolled for themselves, and the action is applicable.
+    repeated string affected_self = 1;
+    // When a moderator/admin rolled for someone else, and the action is applicable.
+    repeated string affected_other = 2;
+    // When a user rolled for themselves, and the action is not applicable (i.e. admin/moderator/protected)
+    repeated string unaffected_self = 3;
+    // When a user rolled for someone else, and the action is not applicable (i.e. admin/moderator/protected)
+    repeated string unaffected_other = 4;
+  }
+
+  message Roll {
+
+    // The weight used to calculate the chance of this roll occurring.
+    // Required.
+    uint32 weight = 1;
+
+    // An artificial "delay" that is induced before the bot responses.
+    // This creates a "<bot_name> is typing..." effect.
+    // A value will be randomly selected between 1s and this value (in seconds).
+    // Optional (do not set to disable).
+    uint32 delay = 2;
+
+    // An action to take if user rolls this value.
+    message Action {
+
+      // When a user should be timed out via Discord's native timeouts.
+      // Note: Users with a protected role, moderator role, or administrators will not receive a timeout.
+      message Timeout {
+        // Lower bound of a timeout (inclusive), in seconds.
+        // Required.
+        uint32 lower_bound = 1;
+        // Upper bound of a timeout (inclusive), in seconds.
+        // Required.
+        uint32 upper_bound = 2;
+        // Responses to reply to the user with.
+        optional Responses responses = 3;
+      }
+
+      // When a user should be given a role for a temporary period of time.
+      // Note: Users with a protected role, moderator role, or administrators will not have the role applied.
+      message TemporaryRole {
+        // Lower bound of the role being active (inclusive), in seconds.
+        // Required.
+        uint32 lower_bound = 1;
+        // Upper bound of the role being active (inclusive), in seconds.
+        // Required.
+        uint32 upper_bound = 2;
+        // The role (id) that should be applied.
+        // Required.
+        uint32 role = 3;
+        // Responses to reply to the user with.
+        optional Responses responses = 4;
+      }
+
+      // Each roll corresponds to a single effect.
+      // Specify one action (effect) per roll configuration.
+      oneof action {
+        google.protobuf.Any unknown = 1;
+        Timeout timeout = 2;
+        TemporaryRole temporary_role = 3;
+      }
+    }
+
+    // The action this roll configuration represents.
+    // Required.
+    Action action = 3;
+  }
+
+  // A list of Roll configurations that represent the "Roulette".
+  // Required.
+  repeated Roll rolls = 7;
+
+  // Responses to default to for timeouts (where a roll may not specify).
+  // Required.
+  Responses timeout_response_default = 8;
+
+  // Responses to default to for temporary roles (where a roll may not specify).
+  // Required.
+  Responses temporary_role_response_default = 9;
+
+}

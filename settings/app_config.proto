@@ -1,0 +1,49 @@
+syntax = "proto3";
+
+import "extensions/roulette/config/roulette_config.proto";
+
+package settings;
+
+// Configuration used by the entire Amazake application.
+message AppConfiguration {
+
+  // The Discord bot token.
+  // Consider providing this via envvar AMAZAKE_BOT_TOKEN= instead.
+  optional string bot_token = 1;
+
+  // Log level to use.
+  // Use: [DEBUG, INFO, WARNING, ERROR, CRITICAL]
+  // This can also be set via envvar AMAZAKE_LOG_LEVEL=.
+  optional string log_level = 2;
+
+  message RedisConfiguration {
+    // Redis host (including schema).
+    // Consider providing this via envvar AMAZAKE_REDIS_HOST= instead.
+    // Defaults to "localhost".
+    optional string host = 1;
+
+    // Redis port.
+    // Consider providing this via envar AMAZAKE_REDIS_PORT= instead.
+    // Defaults to 6379.
+    optional uint32 port = 2;
+
+    // Redis username.
+    // Consider providing this via envar AMAZAKE_REDIS_USERNAME= instead.
+    // Optional.
+    optional string username = 3;
+
+    // Redis password.
+    // Consider providing this via envar AMAZAKE_REDIS_PASSWORD= instead.
+    // Optional.
+    optional string password = 4;
+  }
+
+  // Configuration for a Redis instance that will be shared
+  // across all bot extensions.
+  // Optional (all values may be set via environment variable).
+  optional RedisConfiguration redis_configuration = 3;
+
+  // Configuration for the Roulette extension.
+  optional ext.roulette.config.RouletteConfiguration roulette_configuration = 4;
+
+}

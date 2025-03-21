@@ -1,6 +1,7 @@
 colorlog~=6.8.2
 discord.py~=2.5.0
 dynaconf~=3.2.6
+protobuf~=6.30.1
 redis~=5.0.8
 requests~=2.32.3
 toml~=0.10.2

@@ -1,9 +1,10 @@
-import config
 import redis
 
+from . import redis_config
+
 _pool = redis.ConnectionPool(
-    host=config.redis_host(),
-    port=config.redis_port()
+    host=redis_config.host(),
+    port=redis_config.port()
 )
 
 
@@ -13,7 +14,7 @@ def get_redis():
     """
     redis_client = redis.Redis(
         connection_pool=_pool,
-        password=config.redis_password(),
-        username=config.redis_username()
+        username=redis_config.username(),
+        password=redis_config.password()
     )
     return redis_client

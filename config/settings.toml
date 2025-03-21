@@ -1,31 +1,5 @@
 [default]
 
-# Logger output level.
-# Note: Consider providing this via environment variable instead.
-# Use: [DEBUG, INFO, WARNING, ERROR, CRITICAL]
-log_level = "INFO"
-
-# The token used to log into the Discord bot.
-# Note: Consider providing this via environment variable instead.
-bot_token = "<bot_token>"
-
-# Address of the Redis server.
-# Note: Consider providing this via environment variable instead.
-# IMPORTANT: The Redis server should be ideally exclusive to a single-running instance of Amazake.
-redis_host = "<host_name>"
-
-# Port number of the Redis server.
-# 6379 is default port.
-redis_port = 6379
-
-# Username used to authenticate database connection.
-# Note: Consider providing this via environment variable instead.
-redis_username = "<username>"
-
-# Password used to authenticate database connection.
-# Note: Consider providing this via environment variable instead.
-redis_password = "<password>"
-
 # Time in minutes between each unmute loop.
 # Default 1
 roulette_unmute_rate = 1
