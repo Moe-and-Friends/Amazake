@@ -8,7 +8,7 @@ message RouletteConfiguration {
 
   // The Guild this bot will be operating on.
   // Required.
-  uint64 guild = 1;
+  optional uint64 guild = 1;
 
   // Channels in the Guild to observe (for regular users).
   // Required.

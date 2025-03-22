@@ -25,7 +25,7 @@ _sym_db = _symbol_database.Default()
 from extensions.roulette.config import roulette_config_pb2 as extensions_dot_roulette_dot_config_dot_roulette__config__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x19settings/app_config.proto\x12\x08settings\x1a\x30\x65xtensions/roulette/config/roulette_config.proto\"\xad\x03\n\x10\x41ppConfiguration\x12\x16\n\tbot_token\x18\x01 \x01(\tH\x00\x88\x01\x01\x12\x16\n\tlog_level\x18\x02 \x01(\tH\x01\x88\x01\x01\x12J\n\x13redis_configuration\x18\x03 \x01(\x0b\x32-.settings.AppConfiguration.RedisConfiguration\x12O\n\x16roulette_configuration\x18\x04 \x01(\x0b\x32*.ext.roulette.config.RouletteConfigurationH\x02\x88\x01\x01\x1a\x94\x01\n\x12RedisConfiguration\x12\x11\n\x04host\x18\x01 \x01(\tH\x00\x88\x01\x01\x12\x11\n\x04port\x18\x02 \x01(\rH\x01\x88\x01\x01\x12\x15\n\x08username\x18\x03 \x01(\tH\x02\x88\x01\x01\x12\x15\n\x08password\x18\x04 \x01(\tH\x03\x88\x01\x01\x42\x07\n\x05_hostB\x07\n\x05_portB\x0b\n\t_usernameB\x0b\n\t_passwordB\x0c\n\n_bot_tokenB\x0c\n\n_log_levelB\x19\n\x17_roulette_configurationb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x19settings/app_config.proto\x12\x08settings\x1a\x30\x65xtensions/roulette/config/roulette_config.proto\"\xca\x03\n\x10\x41ppConfiguration\x12\x16\n\tbot_token\x18\x01 \x01(\tH\x00\x88\x01\x01\x12\x16\n\tlog_level\x18\x02 \x01(\tH\x01\x88\x01\x01\x12O\n\x13redis_configuration\x18\x03 \x01(\x0b\x32-.settings.AppConfiguration.RedisConfigurationH\x02\x88\x01\x01\x12O\n\x16roulette_configuration\x18\x04 \x01(\x0b\x32*.ext.roulette.config.RouletteConfigurationH\x03\x88\x01\x01\x1a\x94\x01\n\x12RedisConfiguration\x12\x11\n\x04host\x18\x01 \x01(\tH\x00\x88\x01\x01\x12\x11\n\x04port\x18\x02 \x01(\rH\x01\x88\x01\x01\x12\x15\n\x08username\x18\x03 \x01(\tH\x02\x88\x01\x01\x12\x15\n\x08password\x18\x04 \x01(\tH\x03\x88\x01\x01\x42\x07\n\x05_hostB\x07\n\x05_portB\x0b\n\t_usernameB\x0b\n\t_passwordB\x0c\n\n_bot_tokenB\x0c\n\n_log_levelB\x16\n\x14_redis_configurationB\x19\n\x17_roulette_configurationb\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -33,7 +33,7 @@ _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'settings.app_config_pb2', _
 if not _descriptor._USE_C_DESCRIPTORS:
   DESCRIPTOR._loaded_options = None
   _globals['_APPCONFIGURATION']._serialized_start=90
-  _globals['_APPCONFIGURATION']._serialized_end=519
-  _globals['_APPCONFIGURATION_REDISCONFIGURATION']._serialized_start=316
-  _globals['_APPCONFIGURATION_REDISCONFIGURATION']._serialized_end=464
+  _globals['_APPCONFIGURATION']._serialized_end=548
+  _globals['_APPCONFIGURATION_REDISCONFIGURATION']._serialized_start=321
+  _globals['_APPCONFIGURATION_REDISCONFIGURATION']._serialized_end=469
 # @@protoc_insertion_point(module_scope)

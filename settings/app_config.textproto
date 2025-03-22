@@ -4,7 +4,8 @@
 log_level: "DEBUG"
 
 roulette_configuration: {
-  guild: 546420743710310433 # Moe and Friends
+  # Moe and Friends
+  guild: 546420743710310433
 
   channels: [
     1078358866770792489 # Mutebot

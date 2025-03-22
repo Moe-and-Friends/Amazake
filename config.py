@@ -3,6 +3,7 @@ import os
 from dynaconf import Dynaconf, Validator
 from google.protobuf import text_format
 from settings import app_config_pb2
+from extensions.roulette.config import roulette_config_pb2
 from typing import Dict, List, Optional
 
 _ENV_VAR_PREFIX = "AMAZAKE"
@@ -19,13 +20,7 @@ _settings = Dynaconf(
     ],
     validators=[
         # Roulette settings
-        Validator("roulette_guild", must_exist=True, is_type_of=str),
-        Validator("roulette_channels", must_exist=True, is_type_of=list, len_min=1),
         Validator("roulette_timeout_role", must_exist=True, is_type_of=str),
-        Validator("roulette_protected_roles", is_type_of=list),
-        Validator("roulette_moderator_roles", is_type_of=list),
-        Validator("roulette_administrator_users", is_type_of=list),
-        Validator("roulette_roll_match_patterns", must_exist=True, is_type_of=list, len_min=1),
         Validator("roulette_roll_timeout_affected_messages_self", must_exist=True, is_type_of=list, len_min=1),
         Validator("roulette_roll_timeout_affected_messages_other", must_exist=True, is_type_of=list, len_min=1),
         Validator("roulette_roll_timeout_protected_messages_self", must_exist=True, is_type_of=list, len_min=1),
@@ -39,7 +34,6 @@ _settings = Dynaconf(
 
 with open("settings/app_config.textproto", "r") as f:
     _settings_proto = text_format.Parse(f.read(), app_config_pb2.AppConfiguration())
-    print(_settings_proto)
 
 
 def log_level() -> str:
@@ -69,36 +63,17 @@ def redis_configuration() -> app_config_pb2.AppConfiguration.RedisConfiguration:
     return _settings_proto.redis_configuration
 
 
+def roulette_configuration() -> roulette_config_pb2.RouletteConfiguration:
+    # Okay to return the default value.
+    return _settings_proto.roulette_configuration
+
+
 def redis_key_const() -> Optional[str]:
     return _settings.get("redis_key_const") or None
 
 
-def roulette_roll_match_patterns() -> List[str]:
-    return _settings.get("roulette_roll_match_patterns")
-
-
-def roulette_guild() -> str:
-    return _settings.get("roulette_guild")
-
-
-def roulette_channels() -> List[str]:
-    return _settings.get("roulette_channels")
-
-
 def roulette_timeout_role() -> Optional[str]:
     return _settings.get("roulette_timeout_role")
-
-
-def roulette_protected_roles() -> Optional[List[str]]:
-    return _settings.get("roulette_protected_roles")
-
-
-def roulette_moderator_roles() -> Optional[List[str]]:
-    return _settings.get("roulette_moderator_roles")
-
-
-def roulette_administrator_users() -> Optional[List[str]]:
-    return _settings.get("roulette_administrator_users")
 
 
 def roulette_roll_timeout_affected_messages_self() -> List[str]:

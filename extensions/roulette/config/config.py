@@ -7,41 +7,43 @@ global-level config.
 import config as root_config
 import re
 
-from typing import Dict, Optional, Tuple
+from typing import Dict, Iterable, Optional, Tuple
+
+_roulette_configuration = root_config.roulette_configuration()
 
 
 def guild() -> str:
     """
     :return: The Discord Guild this bot is operating on.
     """
-    return root_config.roulette_guild()
+    if _roulette_configuration.HasField("guild"):
+        return str(_roulette_configuration.guild)
+    raise LookupError("No configuration provided for Roulette - Guild!")
 
 
 def channels() -> Tuple[str]:
     """
     :return:  A list of channel IDs (as strings) representing channels that should be observed.
     """
-    return tuple(str(c) for c in root_config.roulette_channels())
+    if len(channel_ids := tuple(str(c) for c in _roulette_configuration.channels)) > 0:
+        return channel_ids
+    raise LookupError("No channels to observe were provided for Roulette!")
 
 
 def protected() -> Tuple[str]:
     """
     Roles that are immune to end-actions.
-    :return: A list of role IDs.
+    :return: A list of role IDs (can be empty).
     """
-    # Default to an empty list of
-    roles = root_config.roulette_protected_roles()
-    return tuple(str(r) for r in roles) if roles else tuple()
+    return tuple(str(r) for r in _roulette_configuration.protected_roles)
 
 
 def moderator() -> Tuple[str]:
     """
     Roles that are able to run actions for other users.
-    Moderator roles are also implicitly protected roles.
-    :return: A list of role IDs.
+    :return: A list of role IDs (can be empty).
     """
-    roles = root_config.roulette_moderator_roles()
-    return tuple(str(r) for r in roles) if roles else tuple()
+    return tuple(str(r) for r in _roulette_configuration.moderator_roles)
 
 
 def administrator() -> Tuple[str]:
@@ -50,8 +52,9 @@ def administrator() -> Tuple[str]:
     Administrators are implicitly moderators (and thus protected).
     :return: A list of user IDs.
     """
-    users = root_config.roulette_administrator_users()
-    return tuple(str(u) for u in users) if users else tuple()
+    if len(administrator_users := tuple(str(a) for a in _roulette_configuration.administrators)) > 0:
+        return administrator_users
+    raise LookupError("At least one administrator must be configured for Roulette!")
 
 
 def unmute_rate() -> int:
@@ -73,7 +76,9 @@ def roll_match_patterns() -> Tuple[re.Pattern[str]]:
     """
     :return: A tuple of re.Pattern objects used to match messages for trigger hits.
     """
-    return tuple(re.compile(r) for r in root_config.roulette_roll_match_patterns())
+    # Explicitly type-cast here to prevent a warning.
+    patterns: Iterable[str] = _roulette_configuration.patterns
+    return tuple(re.compile(p) for p in patterns)
 
 
 def roll_timeout_affected_messages_self() -> Tuple[str]:
