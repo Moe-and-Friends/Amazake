@@ -8,8 +8,13 @@ import config as root_config
 import re
 
 from typing import Dict, Iterable, Optional, Tuple
+from ..action.roll import Roll
 
 _roulette_configuration = root_config.roulette_configuration()
+
+# Test zone to immediately activate configs on boot
+print("testing  rolls")
+_rolls = [Roll(r) for r in _roulette_configuration.rolls]
 
 
 def guild() -> str:
