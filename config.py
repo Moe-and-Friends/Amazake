@@ -68,10 +68,6 @@ def roulette_configuration() -> roulette_config_pb2.RouletteConfiguration:
     return _settings_proto.roulette_configuration
 
 
-def redis_key_const() -> Optional[str]:
-    return _settings.get("redis_key_const") or None
-
-
 def roulette_timeout_role() -> Optional[str]:
     return _settings.get("roulette_timeout_role")
 

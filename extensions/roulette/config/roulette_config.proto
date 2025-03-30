@@ -49,13 +49,13 @@ message RouletteConfiguration {
 
     // The weight used to calculate the chance of this roll occurring.
     // Required.
-    uint32 weight = 1;
+    optional uint32 weight = 1;
 
     // An artificial "delay" that is induced before the bot responses.
     // This creates a "<bot_name> is typing..." effect.
     // A value will be randomly selected between 1s and this value (in seconds).
     // Optional (do not set to disable).
-    uint32 delay = 2;
+    optional uint32 delay = 2;
 
     // An action to take if user rolls this value.
     message Action {
@@ -63,12 +63,12 @@ message RouletteConfiguration {
       // When a user should be timed out via Discord's native timeouts.
       // Note: Users with a protected role, moderator role, or administrators will not receive a timeout.
       message Timeout {
-        // Lower bound of a timeout (inclusive), in seconds.
+        // Lower bound of a timeout (inclusive), in minutes.
         // Required.
-        uint32 lower_bound = 1;
+        optional uint32 lower_bound = 1;
         // Upper bound of a timeout (inclusive), in seconds.
         // Required.
-        uint32 upper_bound = 2;
+        optional uint32 upper_bound = 2;
         // Responses to reply to the user with.
         optional Responses responses = 3;
       }
