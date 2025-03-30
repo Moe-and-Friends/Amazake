@@ -1,9 +1,11 @@
 import logging
 import random
 
-from . import action, debounce, stats
+from . import debounce, stats
+from ..action.timeout import Timeout
 from ..config import config
 from ..const import identifiers
+from ..extensions import datetime_ext
 from ..roles.roles import get_timeout_role
 
 from api_extensions import members
@@ -74,19 +76,37 @@ class Roll(Cog):
 
             for target in targets:
                 self.logger.info(f"Now processing roll for user: {target.name}")
-                effect = action.fetch()
+                effect = self.fetch_action()
 
                 if configured_delay := config.roll_timeout_response_delay_seconds():
                     delay = random.randint(1, configured_delay)
                     self.logger.debug(f"Artificially waiting {delay} seconds before continuing")
                     await sleep(delay)
 
-                if isinstance(effect, action.Timeout):
-                    self.logger.info(f"Rolled timeout of length {effect.duration_label} for {target.name}")
-                    await self._timeout(timedelta(minutes=effect.duration), effect.duration_label, message, target)
+                if isinstance(effect, Timeout):
+                    # Duration as a pure timedelta object can contain seconds; round to nearest minutes.
+                    timeout_duration = effect.generate_duration()
+                    self.logger.info(f"Rolled timeout of length {timeout_duration} for {target.name}")
+                    await self._timeout(timeout_duration, message, target)
                 else:
                     self.logger.critical("Received an unsupported action type.")
+                    await message.reply("Sorry, something went wrong. Please contact an administrator!")
                     continue
+
+    def fetch_action(self) -> Timeout | None:
+        """
+        Fetches an action (i.e. timeout) to apply to the user.
+        :return: One of the action types.
+        """
+        rolls = config.rolls()
+
+        # Create a list of weights used to determine actions.
+        weights: list[int] = [r.weight for r in rolls]
+        actions: list[Timeout | None] = [r.action for r in rolls]
+        self.logger.debug("Loaded {count} roll weights.".format(count=int(len(weights))))
+
+        action = random.choices(population=actions, weights=weights, k=1)[0]
+        return action
 
     def _is_protected(self, member: Member) -> bool:
         protected = set(config.protected())
@@ -173,12 +193,13 @@ class Roll(Cog):
 
     async def _timeout(self,
                        duration: timedelta,
-                       duration_label: str,
                        message: Message,
                        target: Member):
 
         is_self = target == message.author
         self.logger.debug(f"Message is targeting self: {is_self}")
+
+        duration_label = datetime_ext.convert_seconds_to_display_str(int(duration.total_seconds()))
 
         # If target is protected, respond with a safe message and return immediately.
         if self._is_protected(target) or self._is_moderator(target) or self._is_admin(target):
@@ -196,21 +217,20 @@ class Roll(Cog):
 
         if duration > timedelta(days=28):
             self.logger.warning(f"Received a mute for {duration_label}. This duration is currently unsupported.")
-            await message.reply("Sorry, something went wrong. Please roll again!")
+            await message.reply("Sorry, something went wrong. Please contact an administrator!")
             return
 
-        # TODO: Remove shadow logic.
+        # TODO: Refactor this into temporary_role logic.
         # During deployment testing, apply the role silently to users. We assume the role doesn't actually do
         # anything - we just want to verify with audit logs that this is actually working.
-        try:
-            if await self._apply_timeout_roles(target, duration_label):
-                await self._record_timeout_in_redis(duration, target)
-                self.logger.info(f"Applied timeout role to user {target.id} ({target.name})")
-        except RuntimeError as e:
-            self.logger.critical(e)
-            # TODO: Enable this logic after shadow testing.
-            # await message.reply("Sorry, something went wrong. Please contact an administrator!")
-            # return
+        # try:
+        #     if await self._apply_timeout_roles(target, duration_label):
+        #        await self._record_timeout_in_redis(duration, target)
+        #        self.logger.info(f"Applied timeout role to user {target.id} ({target.name})")
+        # except RuntimeError as e:
+        #   self.logger.critical(e)
+        # await message.reply("Sorry, something went wrong. Please contact an administrator!")
+        # return
 
         await target.timeout(duration, reason=f"Timed out for {duration_label} via Roulette")
         self.logger.info(f"Timed {target.name} out for {duration_label}")
@@ -228,7 +248,7 @@ class Roll(Cog):
 
         stats.timeout_record_stats(duration, message)
 
-    async def _apply_timeout_roles(self, target: Member, duration_label: str) -> bool:
+    async def _DO_NOT_USE_apply_timeout_roles(self, target: Member, duration_label: str) -> bool:
         """
         Applies the specified timeout roll onto a user.
         :return: Whether the role was applied.
@@ -249,7 +269,7 @@ class Roll(Cog):
             return False
         return True
 
-    async def _record_timeout_in_redis(self, duration: timedelta, member: Member):
+    async def _DO_NOT_USE_record_timeout_in_redis(self, duration: timedelta, member: Member):
         """
         Record a timeout into Redis (for future processing).
         :param duration: The duration of the timeout that will be applied.

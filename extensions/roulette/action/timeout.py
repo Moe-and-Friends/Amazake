@@ -1,3 +1,7 @@
+import logging
+import math
+import random
+
 from .responses import Responses
 from ..config import roulette_config_pb2
 
@@ -13,6 +17,8 @@ class Timeout:
     """
 
     def __init__(self, config: roulette_config_pb2.RouletteConfiguration.Roll.Action.Timeout):
+        self.logger = logging.getLogger(__name__)
+
         if config.HasField("lower_bound"):
             self._lower_bound: timedelta = timedelta(minutes=config.lower_bound)
         else:
@@ -36,3 +42,9 @@ class Timeout:
     @property
     def responses(self) -> Optional[Responses]:
         return self._responses
+
+    def generate_duration(self) -> timedelta:
+        lower_bound: int = math.floor(self._lower_bound.total_seconds())
+        upper_bound: int = math.ceil(self._upper_bound.total_seconds())
+        mute_duration = random.randint(lower_bound, upper_bound) // 60  # Always return a minute-based duration.
+        return timedelta(minutes=mute_duration)

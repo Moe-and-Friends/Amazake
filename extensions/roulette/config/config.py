@@ -131,19 +131,6 @@ def roll_timeout_protected_messages_other() -> Tuple[str]:
     return tuple(str(m) for m in root_config.roulette_roll_timeout_protected_messages_other())
 
 
-def roll_timeout_intervals() -> Tuple[Dict]:
-    """
-    A list of interval settings used to determine the gacha roll chances.
-    Each interval is a dict, represented with the following keys:
-    # Supported suffixes: m, h, d, w
-    - bounds["lower"]: Lower bound (inclusive) of the roll value for this interval.
-    - bounds["upper"]: Upper bound (inclusive) of the roll value for this interval.
-    - weight: An integer indicating the non-cumulative weight (chance) for this interval.
-    """
-    # TODO: Maybe consider adding some kind of validation logic here.
-    return tuple(root_config.roulette_roll_timeout_intervals())
-
-
 def roll_timeout_response_delay_seconds() -> int:
     """
     :return: An upper bound delay between the roll and when the bot should respond, or 0 to disable.

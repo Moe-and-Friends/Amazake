@@ -4,7 +4,7 @@ from dynaconf import Dynaconf, Validator
 from google.protobuf import text_format
 from settings import app_config_pb2
 from extensions.roulette.config import roulette_config_pb2
-from typing import Dict, List, Optional
+from typing import List, Optional
 
 _ENV_VAR_PREFIX = "AMAZAKE"
 
@@ -27,7 +27,6 @@ _settings = Dynaconf(
         Validator("roulette_roll_timeout_protected_messages_other", must_exist=True, is_type_of=list, len_min=1),
         Validator("roulette_roll_timeout_leaderboard_webhook_urls", is_type_of=list),
         Validator("roulette_roll_timeout_response_delay_seconds", is_type_of=int),
-        Validator("roulette_roll_timeout_intervals", must_exist=True, is_type_of=list),
         Validator("roulette_unmute_rate", is_type_of=int),
     ]
 )
@@ -94,10 +93,6 @@ def roulette_roll_timeout_leaderboard_webhook_urls() -> Optional[List[str]]:
 
 def roulette_roll_timeout_response_delay_seconds() -> Optional[int]:
     return _settings.get("roulette_roll_timeout_response_delay_seconds")
-
-
-def roulette_roll_timeout_intervals() -> List[Dict]:
-    return _settings.get("roulette_roll_timeout_intervals")
 
 
 def roulette_unmute_rate() -> Optional[int]:
