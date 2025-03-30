@@ -12,10 +12,6 @@ from ..action.roll import Roll
 
 _roulette_configuration = root_config.roulette_configuration()
 
-# Test zone to immediately activate configs on boot
-print("testing  rolls")
-_rolls = [Roll(r) for r in _roulette_configuration.rolls]
-
 
 def guild() -> str:
     """
@@ -60,6 +56,13 @@ def administrator() -> Tuple[str]:
     if len(administrator_users := tuple(str(a) for a in _roulette_configuration.administrators)) > 0:
         return administrator_users
     raise LookupError("At least one administrator must be configured for Roulette!")
+
+
+def rolls() -> Iterable[Roll]:
+    """
+    :return: A list of Roll configurations.
+    """
+    return [Roll(r) for r in _roulette_configuration.rolls]
 
 
 def unmute_rate() -> int:

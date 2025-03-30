@@ -12,7 +12,7 @@ class Roll:
         else:
             raise LookupError("A roll configuration was not given a weight!")
 
-        if config.action.WhichOneof("action") is roulette_config_pb2.RouletteConfiguration.Roll.Action.Timeout:
+        if config.action.HasField("timeout"):
             self._action = Timeout(config.action.timeout)
         # TODO: Support other Action types besides Timeout.
         else:

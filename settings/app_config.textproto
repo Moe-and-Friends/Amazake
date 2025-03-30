@@ -28,12 +28,11 @@ roulette_configuration: {
   ]
 
   rolls: [
-    # Roll 1
     {
       weight: 5,
       action: {
         timeout: {
-          upper_bound: 10,
+          upper_bound: 2,
           lower_bound: 1,
         }
       }
