@@ -2,14 +2,13 @@ import logging
 
 from api_extensions import roles as roles_api
 from discord import Guild, Role
-from typing import Optional
 
 from ..config import config
 
 logger = logging.getLogger(__name__)
 
 
-async def get_timeout_role(guild: Guild) -> Optional[Role]:
+async def get_timeout_role(guild: Guild) -> Role | None:
     """
     :param guild: A Guild to fetch the role from.
     :return: Returns a Discord role associated with an ID, or None if it can't be found.

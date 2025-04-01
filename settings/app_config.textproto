@@ -39,4 +39,36 @@ roulette_configuration: {
     }
   ]
 
+  timeout_response_default: {
+    affected_self: [
+      "Hitdad sees and Hitdad strikes. {user_name} is muted for {duration_label}.",
+      "Daughter protection. It's to die for. {user_name} is muted for {duration_label}.",
+      "Waluigi. He's to die for. {user_name} is muted for {duration_label}.",
+      "What's the most you ever lost on a coin toss? {user_name} wagered {duration_label}.",
+      "Reverend Waluigi has deemed {user_name} a sinner. Their penance: A vow of silence for {duration_label}.",
+      "General Waluigi has sent {user_name}'s squad on a secret mission to spread the Word of Wah. They will be radio-silent for {duration_label}.",
+      "Eyeless dogs are prowling around {user_name}'s house. They'll go away after {duration_label}.",
+      "Moe loves you {user_name}, but you're still getting muted for {duration_label}."
+    ]
+
+    affected_other: [
+      "Hitdad sees and Hitdad strikes. {user_name} is muted for {duration_label}.",
+      "Daughter protection. It's to die for. {user_name} is muted for {duration_label}.",
+      "Waluigi. He's to die for. {user_name} is muted for {duration_label}.",
+      "What's the most you ever lost on a coin toss? {user_name} wagered {duration_label}.",
+      "Reverend Waluigi has deemed {user_name} a sinner. Their penance: A vow of silence for {duration_label}.",
+      "General Waluigi has sent {user_name}'s squad on a secret mission to spread the Word of Wah. They will be radio-silent for {duration_label}.",
+      "Eyeless dogs are prowling around {user_name}'s house. They'll go away after {duration_label}."
+    ]
+
+    unaffected_self: [
+      "Moe loves you, so you won't get muted for {duration_label}.",
+      "The love of Moe's life, thou art not deserving of a {duration_label} mute."
+    ]
+
+    unaffected_other: [
+      "The love of Moe's life, {user_name} is not deserving of a {duration_label} mute."
+    ]
+  }
+
 }

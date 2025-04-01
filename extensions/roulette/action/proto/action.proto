@@ -1,0 +1,65 @@
+syntax = "proto3";
+
+package ext.roulette.action.proto;
+
+import "google/protobuf/any.proto";
+
+message Action {
+
+    // Responses that the bot may use when a user is rolled an action.
+    // Supported inline tags:
+    // {user_name}: The display name of the user (will not be tagged)
+    // {duration_label}: A display of the duration applicable to this action.
+    message Responses {
+        // When the user rolled for themselves, and the action is applicable.
+        repeated string affected_self = 1;
+        // When a moderator/admin rolled for someone else, and the action is applicable.
+        repeated string affected_other = 2;
+        // When a user rolled for themselves, and the action is not applicable (i.e. admin/moderator/protected)
+        repeated string unaffected_self = 3;
+        // When a user rolled for someone else, and the action is not applicable (i.e. admin/moderator/protected)
+        repeated string unaffected_other = 4;
+    }
+
+    // When a user should be timed out via Discord's native timeouts.
+    // Note: Users with a protected role, moderator role, or administrators will not receive a timeout.
+    message Timeout {
+        // Lower bound of a timeout (inclusive), in minutes.
+        // Required.
+        optional uint32 lower_bound = 1;
+        // Upper bound of a timeout (inclusive), in minutes.
+        // Required.
+        optional uint32 upper_bound = 2;
+        // Responses to reply to the user with.
+        optional Responses responses = 3;
+    }
+
+    // When a user should be given a role for a temporary period of time.
+    // Note: Users with a protected role, moderator role, or administrators will not have the role applied.
+    message TemporaryRole {
+        // Lower bound of the role being active (inclusive), in seconds.
+        // Required.
+        uint32 lower_bound = 1;
+        // Upper bound of the role being active (inclusive), in seconds.
+        // Required.
+        uint32 upper_bound = 2;
+        // The role (id) that should be applied.
+        // Required.
+        uint32 role = 3;
+        // Responses to reply to the user with.
+        optional Responses responses = 4;
+    }
+
+    // Each roll corresponds to a single effect.
+    // Specify one action (effect) per roll configuration.
+    oneof action {
+        // Undefined default. Fallback for unrecognised configurations.
+        google.protobuf.Any unknown = 1;
+        
+        // A Discord native timeout.
+        Timeout timeout = 2;
+
+        // A Discord role that will be applied to a user temporarily.
+        TemporaryRole temporary_role = 3;
+    }
+}

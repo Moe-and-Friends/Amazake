@@ -2,23 +2,20 @@ import logging
 import math
 import random
 
-from .responses import Responses
-from ..config import roulette_config_pb2
-
 from datetime import timedelta
-from typing import Optional
+from extensions.roulette.action.responses import Responses
 
+from .proto import action_pb2
 
-# TODO: Move individual configurations to their own proto files.
 
 class Timeout:
     """
     An action representing that a user should be timed out (via Discord's native timeout)
     """
 
-    def __init__(self, config: roulette_config_pb2.RouletteConfiguration.Roll.Action.Timeout):
-        self.logger = logging.getLogger(__name__)
+    def __init__(self, config: action_pb2.Action.Timeout):
 
+        self.logger = logging.getLogger(__name__)
         if config.HasField("lower_bound"):
             self._lower_bound: timedelta = timedelta(minutes=config.lower_bound)
         else:
@@ -29,7 +26,10 @@ class Timeout:
         else:
             raise LookupError("A timeout configuration did not set upper time bound!")
 
-        self._responses: Optional[Responses] = Responses(config.responses) if config.HasField("responses") else None
+        if config.HasField("responses"):
+            self._responses = Responses(config.responses)
+        else:
+            self._responses = None
 
     @property
     def lower_bound(self) -> timedelta:
@@ -40,7 +40,7 @@ class Timeout:
         return self._upper_bound
 
     @property
-    def responses(self) -> Optional[Responses]:
+    def responses(self) -> Responses | None:
         return self._responses
 
     def generate_duration(self) -> timedelta:

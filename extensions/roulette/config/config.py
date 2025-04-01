@@ -7,8 +7,9 @@ global-level config.
 import config as root_config
 import re
 
-from typing import Dict, Iterable, Optional, Tuple
-from ..action.roll import Roll
+from extensions.roulette.action.roll import Roll
+from extensions.roulette.action.responses import Responses
+from typing import Iterable, Optional, Tuple
 
 _roulette_configuration = root_config.roulette_configuration()
 
@@ -63,6 +64,16 @@ def rolls() -> Iterable[Roll]:
     :return: A list of Roll configurations.
     """
     return [Roll(r) for r in _roulette_configuration.rolls]
+
+
+def timeout_responses_default() -> Responses:
+    """
+    :return: Responses to use by default in Timeout, if not provided otherwise.
+    """
+    if not _roulette_configuration.HasField("timeout_response_default"):
+        raise LookupError("No default responses were provided for Timeout actions.")
+
+    return Responses(_roulette_configuration.timeout_response_default)
 
 
 def unmute_rate() -> int:

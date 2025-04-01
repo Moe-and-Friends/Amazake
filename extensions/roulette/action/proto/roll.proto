@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+package ext.roulette.action.proto;
+
+import "extensions/roulette/action/proto/action.proto";
+
+message Roll {
+
+    // The weight used to calculate the chance of this roll occurring.
+    // Required.
+    optional uint32 weight = 1;
+
+    // An artificial "delay" that is induced before the bot responses.
+    // This creates a "<bot_name> is typing..." effect.
+    // A value will be randomly selected between 1s and this value (in seconds).
+    // Optional (do not set to disable).
+    optional uint32 delay = 2;
+
+    // The action this roll configuration represents.
+    // Required.
+    ext.roulette.action.proto.Action action = 3;
+}

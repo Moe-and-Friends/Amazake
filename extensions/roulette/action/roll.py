@@ -1,12 +1,10 @@
+from .proto import roll_pb2
 from .timeout import Timeout
-from ..config import roulette_config_pb2
-
-from typing import Optional
 
 
 class Roll:
 
-    def __init__(self, config: roulette_config_pb2.RouletteConfiguration.Roll):
+    def __init__(self, config: roll_pb2.Roll):
         if config.HasField("weight"):
             self._weight: int = config.weight
         else:
