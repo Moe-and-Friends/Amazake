@@ -83,15 +83,13 @@ class Roll(Cog):
                     self.logger.debug(f"Artificially waiting {delay} seconds before continuing")
                     await sleep(delay)
 
-                if isinstance(effect, Timeout):
-                    # Duration as a pure timedelta object can contain seconds; round to nearest minutes.
-                    timeout_duration = effect.generate_duration()
-                    self.logger.info(f"Rolled timeout of length {timeout_duration} for {target.name}")
-                    await self._timeout(timeout_duration, message, target)
-                else:
-                    self.logger.critical("Received an unsupported action type.")
-                    await message.reply("Sorry, something went wrong. Please contact an administrator!")
-                    continue
+                match effect:
+                    case Timeout():
+                        await self._timeout(effect, message, target)
+                    case _:
+                        self.logger.critical("Received an unsupported action type.")
+                        await message.reply("Sorry, something went wrong. Please contact an administrator!")
+                        continue
 
     def fetch_action(self) -> Timeout | None:
         """
@@ -149,20 +147,18 @@ class Roll(Cog):
 
         # Fetch the responded-to message from Discord.
         reference_message = await message.channel.get_partial_message(message.reference.message_id).fetch()
-        if reference_message:
-            self.logger.debug(f"Fetched reference message {reference_message.id} from the Discord API")
-        else:
+        if not reference_message:
             self.logger.warning(
                 f"Unable to resolve reference message {reference_message.id} from the Discord API. Assuming no mentions...")
             return set()
+        self.logger.debug(f"Fetched reference message {reference_message.id} from the Discord API")
 
         reference_message_author = await members.get_member(reference_message.author.id, message.guild)
-        if reference_message_author:
-            self.logger.debug(f"Fetched reference message author {reference_message_author.name}")
-        else:
+        if not reference_message_author:
             self.logger.warning(
                 f"Unable to fetch reference message author from the Discord API. Assuming no mentions...")
             return set()
+        self.logger.debug(f"Fetched reference message author {reference_message_author.name}")
 
         # Note: It's okay to return mentions of the bot itself.
         return {reference_message_author}
@@ -192,27 +188,30 @@ class Roll(Cog):
         return {message.author}
 
     async def _timeout(self,
-                       duration: timedelta,
+                       timeout: Timeout,
                        message: Message,
                        target: Member):
 
-        is_self = target == message.author
-        self.logger.debug(f"Message is targeting self: {is_self}")
-
+        # Duration as a pure timedelta object can contain seconds; round to nearest minutes.
+        duration = timeout.generate_duration()
         duration_label = datetime_ext.convert_seconds_to_display_str(int(duration.total_seconds()))
+        self.logger.info(f"Rolled timeout of length {duration} for {target.name}")
+
+        is_self_target = target == message.author
+        self.logger.debug(f"Message is targeting self: {is_self_target}")
 
         # If target is protected, respond with a safe message and return immediately.
         if self._is_protected(target) or self._is_moderator(target) or self._is_admin(target):
-            if is_self:
-                self.logger.info("Responding with protected message for self")
-                reply = random.choice(config.roll_timeout_protected_messages_self())
-                await message.reply(reply.format(user_name=target.display_name,
-                                                 duration_label=duration_label))
-            else:
-                self.logger.info("Responding with protected message for targeted user")
-                reply = random.choice(config.roll_timeout_protected_messages_other())
-                await message.reply(reply.format(user_name=target.display_name,
-                                                 duration_label=duration_label))
+            self.logger.debug("Responding with protected message.")
+            try:
+                responses = timeout.responses.unaffected_self if is_self_target \
+                    else timeout.responses.unaffected_other
+            except AttributeError:  # Catch access on None object (timeout.responses)
+                responses = config.timeout_responses_default().unaffected_self if is_self_target \
+                    else timeout.responses.unaffected_other
+            reply = random.choice(responses)
+            await message.reply(reply.format(user_name=target.display_name,
+                                             duration_label=duration_label))
             return
 
         if duration > timedelta(days=28):
@@ -235,16 +234,16 @@ class Roll(Cog):
         await target.timeout(duration, reason=f"Timed out for {duration_label} via Roulette")
         self.logger.info(f"Timed {target.name} out for {duration_label}")
 
-        if is_self:
-            self.logger.info("Responding with affected message for self")
-            reply = random.choice(config.roll_timeout_affected_messages_self())
-            await message.reply(reply.format(user_name=target.display_name,
-                                             duration_label=duration_label))
-        else:
-            self.logger.info("Responding with affected message for targeted user")
-            reply = random.choice(config.roll_timeout_affected_messages_other())
-            await message.reply(reply.format(user_name=target.display_name,
-                                             duration_label=duration_label))
+        self.logger.debug("Responding with affected message.")
+        try:
+            responses = timeout.responses.affected_self if is_self_target \
+                else config.timeout_responses_default().affected_self
+        except AttributeError:  # Catch access on None object (timeout.responses)
+            responses = timeout.responses.affected_other if is_self_target \
+                else config.timeout_responses_default().affected_other
+        reply = random.choice(responses)
+        await message.reply(reply.format(user_name=target.display_name,
+                                         duration_label=duration_label))
 
         stats.timeout_record_stats(duration, message)
 

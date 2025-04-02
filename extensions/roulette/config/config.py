@@ -100,48 +100,6 @@ def roll_match_patterns() -> Tuple[re.Pattern[str]]:
     return tuple(re.compile(p) for p in patterns)
 
 
-def roll_timeout_affected_messages_self() -> Tuple[str]:
-    """
-    A list of messages representing bot responses when a user has rolled a mute for themselves.
-    Supported inline replacement values:
-    - {timeout_user_name}: The display name of the user (will not be tagged)
-    - {timeout_duration_label}: A display of the user's timeout duration
-    """
-    return tuple(str(m) for m in root_config.roulette_roll_timeout_affected_messages_self())
-
-
-def roll_timeout_affected_messages_other() -> Tuple[str]:
-    """
-    A list of messages representing bot responses when a moderator or administrator rolls a mute for another user.
-    Supported inline replacement values:
-    - {timeout_user_name}: The display name of the user (will not be tagged)
-    - {timeout_duration_label}: A display of the user's timeout duration
-    """
-    return tuple(str(m) for m in root_config.roulette_roll_timeout_affected_messages_other())
-
-
-def roll_timeout_protected_messages_self() -> Tuple[str]:
-    """
-    A list of messages representing bot responses when a user has rolled a mute for themselves but is protected from the
-        effect, such as a protected role, moderator, or administrator.
-    Supported inline replacement values:
-    - {timeout_user_name}: The display name of the user (will not be tagged)
-    - {timeout_duration_label}: A display of the user's timeout duration
-    """
-    return tuple(str(m) for m in root_config.roulette_roll_timeout_protected_messages_self())
-
-
-def roll_timeout_protected_messages_other() -> Tuple[str]:
-    """
-    A list of messages representing bot responses when a user has rolled a mute for another user but that user is
-        protected from the effect, e.g. having a protected role, moderator role, or being an administrator.
-    Supported inline replacement values:
-    - {timeout_user_name}: The display name of the user (will not be tagged)
-    - {timeout_duration_label}: A display of the user's timeout duration
-    """
-    return tuple(str(m) for m in root_config.roulette_roll_timeout_protected_messages_other())
-
-
 def roll_timeout_response_delay_seconds() -> int:
     """
     :return: An upper bound delay between the roll and when the bot should respond, or 0 to disable.

@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Self
 
 from .proto import action_pb2
 
