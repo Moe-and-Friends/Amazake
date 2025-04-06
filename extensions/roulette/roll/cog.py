@@ -2,6 +2,7 @@ import logging
 import random
 
 from . import debounce
+from ..action.temporary_role import TemporaryRole
 from ..action.timeout import Timeout
 from ..config import config
 from ..identifiers import identifiers
@@ -86,6 +87,8 @@ class Roll(Cog):
                 match effect:
                     case Timeout():
                         await timeout.native_timeout(effect, message, target)
+                    case TemporaryRole():
+                        await message.reply("Hit the TempRole logic path")
                     case _:
                         self.logger.critical("Received an unsupported action type.")
                         await message.reply("Sorry, something went wrong. Please contact an administrator!")

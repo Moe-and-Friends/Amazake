@@ -1,4 +1,5 @@
 from .proto import roll_pb2
+from .temporary_role import TemporaryRole
 from .timeout import Timeout
 
 
@@ -12,7 +13,8 @@ class Roll:
 
         if config.action.HasField("timeout"):
             self._action = Timeout(config.action.timeout)
-        # TODO: Support other Action types besides Timeout.
+        elif config.action.HasField("temporary_role"):
+            self._action = TemporaryRole(config.action.temporary_role)
         else:
             self._action = None
 
@@ -21,5 +23,5 @@ class Roll:
         return self._weight
 
     @property
-    def action(self) -> Timeout | None:
+    def action(self) -> TemporaryRole | Timeout | None:
         return self._action

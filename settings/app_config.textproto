@@ -36,6 +36,30 @@ roulette_configuration: {
           lower_bound: 1,
         }
       }
+    },
+    {
+      weight: 5,
+      action: {
+        temporary_role: {
+          upper_bound: 2,
+          lower_bound: 1,
+          role: 1347934651460620318
+          responses: {
+            affected_self: [
+              "Hitdad sees and Hitdad strikes. {user_name} is muted for {duration_label}."
+            ]
+            affected_other: [
+              "Hitdad sees and Hitdad strikes. {user_name} is muted for {duration_label}."
+            ]
+            unaffected_self: [
+              "Moe loves you, so you won't get muted for {duration_label}."
+            ]
+            unaffected_other: [
+              "The love of Moe's life, {user_name} is not deserving of a {duration_label} mute."
+            ]
+          }
+        }
+      }
     }
   ]
 

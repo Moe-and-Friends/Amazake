@@ -99,7 +99,6 @@ def roll_response_delay_seconds() -> int:
     """
     if _roulette_configuration.HasField("roll_response_delay"):
         return _roulette_configuration.roll_response_delay
-
     return 0
 
 
