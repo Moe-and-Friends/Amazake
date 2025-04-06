@@ -71,4 +71,6 @@ roulette_configuration: {
     ]
   }
 
+  roll_response_delay: 3
+
 }

@@ -78,7 +78,7 @@ class Roll(Cog):
                 self.logger.info(f"Now processing roll for user: {target.name}")
                 effect = self.fetch_action()
 
-                if configured_delay := config.roll_timeout_response_delay_seconds():
+                if (configured_delay := config.roll_response_delay_seconds()) >= 1:
                     delay = random.randint(1, configured_delay)
                     self.logger.debug(f"Artificially waiting {delay} seconds before continuing")
                     await sleep(delay)

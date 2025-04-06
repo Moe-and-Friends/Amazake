@@ -35,7 +35,13 @@ message RouletteConfiguration {
   // Required.
   repeated ext.roulette.action.proto.Roll rolls = 7;
 
+  // Upper bound of a delay (in seconds) between when a user rolls and when the bot responds.
+  // During this delay, "[bot] is typing..." will appear.
+  // Set to 0 (or do not set) to disable.
+  // Optional.
+  optional uint32 roll_response_delay = 8;
+
   // Responses to default to for timeouts (where a roll may not specify).
   // Required.
-  optional ext.roulette.action.proto.Action.Responses timeout_response_default = 8;
+  optional ext.roulette.action.proto.Action.Responses timeout_response_default = 9;
 }

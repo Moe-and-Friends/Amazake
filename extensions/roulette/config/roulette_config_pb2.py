@@ -26,7 +26,7 @@ from extensions.roulette.action.proto import action_pb2 as extensions_dot_roulet
 from extensions.roulette.action.proto import roll_pb2 as extensions_dot_roulette_dot_action_dot_proto_dot_roll__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n0extensions/roulette/config/roulette_config.proto\x12\x13\x65xt.roulette.config\x1a-extensions/roulette/action/proto/action.proto\x1a+extensions/roulette/action/proto/roll.proto\"\xc4\x02\n\x15RouletteConfiguration\x12\x12\n\x05guild\x18\x01 \x01(\x04H\x00\x88\x01\x01\x12\x10\n\x08\x63hannels\x18\x02 \x03(\x04\x12\x16\n\x0e\x61\x64ministrators\x18\x03 \x03(\x04\x12\x17\n\x0fmoderator_roles\x18\x04 \x03(\x04\x12\x17\n\x0fprotected_roles\x18\x05 \x03(\x04\x12\x10\n\x08patterns\x18\x06 \x03(\t\x12.\n\x05rolls\x18\x07 \x03(\x0b\x32\x1f.ext.roulette.action.proto.Roll\x12R\n\x18timeout_response_default\x18\x08 \x01(\x0b\x32+.ext.roulette.action.proto.Action.ResponsesH\x01\x88\x01\x01\x42\x08\n\x06_guildB\x1b\n\x19_timeout_response_defaultb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n0extensions/roulette/config/roulette_config.proto\x12\x13\x65xt.roulette.config\x1a-extensions/roulette/action/proto/action.proto\x1a+extensions/roulette/action/proto/roll.proto\"\xfe\x02\n\x15RouletteConfiguration\x12\x12\n\x05guild\x18\x01 \x01(\x04H\x00\x88\x01\x01\x12\x10\n\x08\x63hannels\x18\x02 \x03(\x04\x12\x16\n\x0e\x61\x64ministrators\x18\x03 \x03(\x04\x12\x17\n\x0fmoderator_roles\x18\x04 \x03(\x04\x12\x17\n\x0fprotected_roles\x18\x05 \x03(\x04\x12\x10\n\x08patterns\x18\x06 \x03(\t\x12.\n\x05rolls\x18\x07 \x03(\x0b\x32\x1f.ext.roulette.action.proto.Roll\x12 \n\x13roll_response_delay\x18\x08 \x01(\rH\x01\x88\x01\x01\x12R\n\x18timeout_response_default\x18\t \x01(\x0b\x32+.ext.roulette.action.proto.Action.ResponsesH\x02\x88\x01\x01\x42\x08\n\x06_guildB\x16\n\x14_roll_response_delayB\x1b\n\x19_timeout_response_defaultb\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -34,5 +34,5 @@ _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'extensions.roulette.config.
 if not _descriptor._USE_C_DESCRIPTORS:
   DESCRIPTOR._loaded_options = None
   _globals['_ROULETTECONFIGURATION']._serialized_start=166
-  _globals['_ROULETTECONFIGURATION']._serialized_end=490
+  _globals['_ROULETTECONFIGURATION']._serialized_end=548
 # @@protoc_insertion_point(module_scope)

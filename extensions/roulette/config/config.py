@@ -93,11 +93,14 @@ def roll_match_patterns() -> Tuple[re.Pattern[str]]:
     return tuple(re.compile(p) for p in patterns)
 
 
-def roll_timeout_response_delay_seconds() -> int:
+def roll_response_delay_seconds() -> int:
     """
-    :return: An upper bound delay between the roll and when the bot should respond, or 0 to disable.
+    :return: An upper bound delay between the roll and when the bot should respond, or 0 if disabled.
     """
-    return root_config.roulette_roll_timeout_response_delay_seconds() or 0
+    if _roulette_configuration.HasField("roll_response_delay"):
+        return _roulette_configuration.roll_response_delay
+
+    return 0
 
 
 def roll_timeout_leaderboard_webhook_urls() -> Tuple[str]:
