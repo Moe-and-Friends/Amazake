@@ -27,7 +27,6 @@ _settings = Dynaconf(
         Validator("roulette_roll_timeout_protected_messages_other", must_exist=True, is_type_of=list, len_min=1),
         Validator("roulette_roll_timeout_leaderboard_webhook_urls", is_type_of=list),
         Validator("roulette_roll_timeout_response_delay_seconds", is_type_of=int),
-        Validator("roulette_unmute_rate", is_type_of=int),
     ]
 )
 
@@ -93,10 +92,6 @@ def roulette_roll_timeout_leaderboard_webhook_urls() -> Optional[List[str]]:
 
 def roulette_roll_timeout_response_delay_seconds() -> Optional[int]:
     return _settings.get("roulette_roll_timeout_response_delay_seconds")
-
-
-def roulette_unmute_rate() -> Optional[int]:
-    return _settings.get("roulette_unmute_rate") or None
 
 # `envvar_prefix` = export envvars with `export ROULETTE_FOO=bar`.
 # `settings_files` = Load these files in the order.

@@ -1,19 +1,19 @@
 import logging
 import random
 
-from . import debounce, stats
+from . import debounce
 from ..action.timeout import Timeout
 from ..config import config
-from ..const import identifiers
-from ..extensions import datetime_ext
+from ..identifiers import identifiers
 from ..roles.roles import get_timeout_role
 
 from api_extensions import members
 from asyncio import sleep
 from database.redis_client import get_redis
 from datetime import datetime, timedelta, timezone
-from discord import Forbidden, HTTPException, Member, Message, User
+from discord import Forbidden, HTTPException, Member, Message
 from discord.ext.commands import Bot, Cog, guild_only
+from extensions.roulette.roll import permissions, timeout
 from typing import Set
 
 _redis_client = get_redis()
@@ -40,9 +40,9 @@ class Roll(Cog):
             return
 
         # Get user's permission status.
-        is_administrator = self._is_admin(message.author)
+        is_administrator = permissions.is_admin(message.author)
         # All administrators are implicitly moderators and are protected
-        is_moderator = self._is_moderator(message.author) or is_administrator
+        is_moderator = permissions.is_moderator(message.author) or is_administrator
 
         if str(message.channel.id) not in config.channels():
             if not (is_administrator or is_moderator):
@@ -85,7 +85,7 @@ class Roll(Cog):
 
                 match effect:
                     case Timeout():
-                        await self._timeout(effect, message, target)
+                        await timeout.native_timeout(effect, message, target)
                     case _:
                         self.logger.critical("Received an unsupported action type.")
                         await message.reply("Sorry, something went wrong. Please contact an administrator!")
@@ -105,23 +105,6 @@ class Roll(Cog):
 
         action = random.choices(population=actions, weights=weights, k=1)[0]
         return action
-
-    def _is_protected(self, member: Member) -> bool:
-        protected = set(config.protected())
-        is_protected = not protected.isdisjoint(set([str(role.id) for role in member.roles]))
-        self.logger.debug(f"User {member.name}'s protected status: {is_protected}")
-        return is_protected
-
-    def _is_moderator(self, member: Member) -> bool:
-        moderators = set(config.moderator())
-        is_moderator = not moderators.isdisjoint(set([str(role.id) for role in member.roles]))
-        self.logger.debug(f"User {member.name}'s mod status: {is_moderator}")
-        return is_moderator
-
-    def _is_admin(self, user: User | Member) -> bool:
-        is_admin = str(user.id) in config.administrator()
-        self.logger.debug(f"User {user.name}'s admin status: {is_admin}")
-        return is_admin
 
     async def _determine_mentions(self, message: Message) -> Set[Member]:
         """
@@ -169,8 +152,8 @@ class Roll(Cog):
         :param message: The message event to process
         :return: A list of Discord Members that the roll is targeting.
         """
-        is_moderator = self._is_moderator(message.author)
-        is_administrator = self._is_admin(message.author)
+        is_moderator = permissions.is_moderator(message.author)
+        is_administrator = permissions.is_admin(message.author)
 
         # Check if user *can* even mention first, to reduce fetch calls to the API.
         if not is_moderator and not is_administrator:
@@ -186,66 +169,6 @@ class Roll(Cog):
 
         self.logger.debug("Didn't find any mentions, returning message author as target.")
         return {message.author}
-
-    async def _timeout(self,
-                       timeout: Timeout,
-                       message: Message,
-                       target: Member):
-
-        # Duration as a pure timedelta object can contain seconds; round to nearest minutes.
-        duration = timeout.generate_duration()
-        duration_label = datetime_ext.convert_seconds_to_display_str(int(duration.total_seconds()))
-        self.logger.info(f"Rolled timeout of length {duration} for {target.name}")
-
-        is_self_target = target == message.author
-        self.logger.debug(f"Message is targeting self: {is_self_target}")
-
-        # If target is protected, respond with a safe message and return immediately.
-        if self._is_protected(target) or self._is_moderator(target) or self._is_admin(target):
-            self.logger.debug("Responding with protected message.")
-            try:
-                responses = timeout.responses.unaffected_self if is_self_target \
-                    else timeout.responses.unaffected_other
-            except AttributeError:  # Catch access on None object (timeout.responses)
-                responses = config.timeout_responses_default().unaffected_self if is_self_target \
-                    else timeout.responses.unaffected_other
-            reply = random.choice(responses)
-            await message.reply(reply.format(user_name=target.display_name,
-                                             duration_label=duration_label))
-            return
-
-        if duration > timedelta(days=28):
-            self.logger.warning(f"Received a mute for {duration_label}. This duration is currently unsupported.")
-            await message.reply("Sorry, something went wrong. Please contact an administrator!")
-            return
-
-        # TODO: Refactor this into temporary_role logic.
-        # During deployment testing, apply the role silently to users. We assume the role doesn't actually do
-        # anything - we just want to verify with audit logs that this is actually working.
-        # try:
-        #     if await self._apply_timeout_roles(target, duration_label):
-        #        await self._record_timeout_in_redis(duration, target)
-        #        self.logger.info(f"Applied timeout role to user {target.id} ({target.name})")
-        # except RuntimeError as e:
-        #   self.logger.critical(e)
-        # await message.reply("Sorry, something went wrong. Please contact an administrator!")
-        # return
-
-        await target.timeout(duration, reason=f"Timed out for {duration_label} via Roulette")
-        self.logger.info(f"Timed {target.name} out for {duration_label}")
-
-        self.logger.debug("Responding with affected message.")
-        try:
-            responses = timeout.responses.affected_self if is_self_target \
-                else config.timeout_responses_default().affected_self
-        except AttributeError:  # Catch access on None object (timeout.responses)
-            responses = timeout.responses.affected_other if is_self_target \
-                else config.timeout_responses_default().affected_other
-        reply = random.choice(responses)
-        await message.reply(reply.format(user_name=target.display_name,
-                                         duration_label=duration_label))
-
-        stats.timeout_record_stats(duration, message)
 
     async def _DO_NOT_USE_apply_timeout_roles(self, target: Member, duration_label: str) -> bool:
         """

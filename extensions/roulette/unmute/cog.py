@@ -4,7 +4,7 @@ import logging
 from .debounce import should_debounce
 
 from ..config import config
-from ..const import identifiers
+from ..identifiers import identifiers
 from ..roles.roles import get_timeout_role
 
 from api_extensions import guilds, members
@@ -28,7 +28,7 @@ class Unmute(Cog):
     async def cog_command_error(self, ctx, error: Exception) -> None:
         self.logger.error(error)
 
-    @tasks.loop(minutes=config.unmute_rate())
+    @tasks.loop(minutes=1)
     async def unmute_loop(self):
         # TODO: Investigate if the unmute function can be executed within a transaction or a lock.
         # This is low-priority, since we assume each server only has one bot running for it.

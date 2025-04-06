@@ -76,13 +76,6 @@ def timeout_responses_default() -> Responses:
     return Responses(_roulette_configuration.timeout_response_default)
 
 
-def unmute_rate() -> int:
-    """
-    :return: Time in minutes between each unmute loop, as an integer.
-    """
-    return root_config.roulette_unmute_rate() or 1
-
-
 def timeout_role() -> Optional[str]:
     """
     A role that is applied to users to time them out.
